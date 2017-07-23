@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">JotMe</string>
+
+    <!--DetailFragment Fragment label text -->
+    <string name="label_title">Title</string>
+    <string name="label_tag">Tag(s)</string>
+    <string name="label_message">Message</string>
+
+    <!-- Sample texts -->
+    <string name="sample_message">This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text.</string>
+    <string name="sample_title">This is a sample title</string>
+    <string name="sample_tag">Tag</string>
+</resources>
