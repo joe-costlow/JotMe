@@ -25,18 +25,20 @@ public class MainActivity extends AppCompatActivity {
 
         if (mDualPane) {
 
-//            getSupportFragmentManager().beginTransaction()
-//                    .replace(R.id.frame_right, editFragment)
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.frame_right, editFragment)
 //                    .replace(R.id.frame_right, detailFragment)
 //                    .replace(R.id.frame_left, listFragment)
-//                    .commit();
+//                    .addToBackStack(null)
+                    .commit();
 
         } else {
 
-//            getSupportFragmentManager().beginTransaction()
+            getSupportFragmentManager().beginTransaction()
 //                    .replace(R.id.frame_full, detailFragment)
-//                    .replace(R.id.frame_full, editFragment)
-//                    .commit();
+                    .replace(R.id.frame_full, editFragment)
+//                    .addToBackStack(null)
+                    .commit();
 
         }
     }

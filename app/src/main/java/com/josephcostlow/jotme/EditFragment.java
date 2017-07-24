@@ -82,12 +82,12 @@ public class EditFragment extends Fragment {
         editTagThree = (EditText) rootView.findViewById(R.id.edit_edit_tag_three);
         editMessage = (EditText) rootView.findViewById(R.id.edit_edit_message);
 
-        editTitle.setText(getResources().getText(R.string.sample_title));
-        editTagOne.setText(getResources().getText(R.string.sample_tag));
-        editTagTwo.setText(getResources().getText(R.string.sample_tag));
-        editTagThree.setText(getResources().getText(R.string.sample_tag));
+//        editTitle.setText(getResources().getText(R.string.sample_title));
+//        editTagOne.setText(getResources().getText(R.string.sample_tag));
+//        editTagTwo.setText(getResources().getText(R.string.sample_tag));
+//        editTagThree.setText(getResources().getText(R.string.sample_tag));
 //        editMessage.setText(getResources().getText(R.string.sample_message));
-        editMessage.setText("This is a sample message");
+//        editMessage.setText("This is a sample message");
 
         // Inflate the layout for this fragment
         return rootView;
