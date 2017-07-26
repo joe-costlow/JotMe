@@ -3,6 +3,7 @@ package com.josephcostlow.jotme;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,10 +32,17 @@ public class DetailFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
+    private String TITLE_KEY = "title";
+    private String TAG_ONE_KEY = "tagOne";
+    private String TAG_TWO_KEY = "tagTwo";
+    private String TAG_THREE_KEY = "tagThree";
+    private String MESSAGE_KEY = "message";
 
     TextView labelTitle, labelTags, labelMessage;
     TextView textTitle, textTagOne, textTagTwo, textTagThree, textMessage;
     ScrollView messageSV;
+
+    Bundle bundle;
 
     public DetailFragment() {
         // Required empty public constructor
@@ -65,6 +73,8 @@ public class DetailFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+        setRetainInstance(true);
     }
 
     @Override
@@ -82,14 +92,40 @@ public class DetailFragment extends Fragment {
         textTagTwo = (TextView) rootView.findViewById(R.id.text_tag_two);
         textTagThree = (TextView) rootView.findViewById(R.id.text_tag_three);
         textMessage = (TextView) rootView.findViewById(R.id.message_tv);
+        messageSV = (ScrollView) rootView.findViewById(R.id.message_sv);
+
+        if (savedInstanceState != null) {
+
+            if (savedInstanceState.containsKey(TITLE_KEY)) {
+                textTitle.setText(savedInstanceState.getString(TITLE_KEY));
+            }
+
+            if (savedInstanceState.containsKey(TAG_ONE_KEY)) {
+                textTagOne.setText(savedInstanceState.getString(TAG_ONE_KEY));
+            }
+
+            if (savedInstanceState.containsKey(TAG_TWO_KEY)) {
+                textTagTwo.setText(savedInstanceState.getString(TAG_TWO_KEY));
+            }
+
+            if (savedInstanceState.containsKey(TAG_TWO_KEY)) {
+                textTagTwo.setText(savedInstanceState.getString(TAG_TWO_KEY));
+            }
+
+            if (savedInstanceState.containsKey(TAG_THREE_KEY)) {
+                textTagThree.setText(savedInstanceState.getString(TAG_THREE_KEY));
+            }
+
+            if (savedInstanceState.containsKey(MESSAGE_KEY)) {
+                textMessage.setText(savedInstanceState.getString(MESSAGE_KEY));
+            }
+        }
 
         textTitle.setText(getResources().getText(R.string.sample_title));
         textTagOne.setText(getResources().getText(R.string.sample_tag));
         textTagTwo.setText(getResources().getText(R.string.sample_tag));
         textTagThree.setText(getResources().getText(R.string.sample_tag));
         textMessage.setText(getResources().getText(R.string.sample_message));
-
-        messageSV = (ScrollView) rootView.findViewById(R.id.message_sv);
 
         // Inflate the layout for this fragment
         return rootView;
@@ -117,6 +153,27 @@ public class DetailFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putString(TITLE_KEY, textTitle.getText().toString());
+        outState.putString(TAG_ONE_KEY, textTagOne.getText().toString());
+        outState.putString(TAG_TWO_KEY, textTagTwo.getText().toString());
+        outState.putString(TAG_THREE_KEY, textTagThree.getText().toString());
+        outState.putString(MESSAGE_KEY, textMessage.getText().toString());
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+//        bundle = getArguments();
+//        if (bundle != null) {
+//            TODO implement bundle when interface is made
+//        }
     }
 
     /**
