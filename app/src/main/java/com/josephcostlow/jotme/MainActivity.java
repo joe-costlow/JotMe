@@ -11,6 +11,8 @@ public class MainActivity extends AppCompatActivity {
     private String RETAINED_DETAIL_FRAGMENT = "retainedDetailFragment";
     private String RETAINED_EDIT_FRAGMENT = "retainedEditFragment";
     private String INITIAL_LIST_FRAGMENT = "initialListFragment";
+    private String INITIAL_DETAIL_FRAGMENT = "initialDetailFragment";
+    private String INITIAL_EDIT_FRAGMENT = "initialEditFragment";
 
     Toolbar mainToolbar;
 
@@ -38,12 +40,24 @@ public class MainActivity extends AppCompatActivity {
 
         if (mDualPane) {
 
-            getSupportFragmentManager().beginTransaction()
-//                    .replace(R.id.frame_right, editFragment)
-                    .add(R.id.frame_right, detailFragment)
-//                    .replace(R.id.frame_left, listFragment)
-//                    .addToBackStack(null)
-                    .commit();
+            if (savedInstanceState == null) {
+
+                detailFragment = new DetailFragment();
+                editFragment = new EditFragment();
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
+                        .add(R.id.frame_left, editFragment, INITIAL_EDIT_FRAGMENT)
+                        .commit();
+
+            } else {
+
+                detailFragment = (DetailFragment) getSupportFragmentManager()
+                        .findFragmentByTag(RETAINED_DETAIL_FRAGMENT);
+
+                editFragment = (EditFragment) getSupportFragmentManager()
+                        .findFragmentByTag(RETAINED_EDIT_FRAGMENT);
+
+            }
 
         } else {
 
@@ -54,9 +68,14 @@ public class MainActivity extends AppCompatActivity {
 //                        .add(R.id.frame_full, listFragment, INITIAL_LIST_FRAGMENT)
 //                        .commit();
 
-                detailFragment = new DetailFragment();
+//                detailFragment = new DetailFragment();
+//                getSupportFragmentManager().beginTransaction()
+//                        .add(R.id.frame_full, detailFragment, INITIAL_DETAIL_FRAGMENT)
+//                        .commit();
+
+                editFragment = new EditFragment();
                 getSupportFragmentManager().beginTransaction()
-                        .add(R.id.frame_full, detailFragment)
+                        .add(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
                         .commit();
 
             } else {
@@ -77,13 +96,6 @@ public class MainActivity extends AppCompatActivity {
                 }
 
             }
-
-//            getSupportFragmentManager().beginTransaction()
-//                    .add(R.id.frame_full, detailFragment)
-//                    .replace(R.id.frame_full, editFragment)
-//                    .addToBackStack(null)
-//                    .commit();
-
         }
     }
 
@@ -92,6 +104,18 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
 
         if (mDualPane) {
+
+            if (listFragment != null) {
+                getSupportFragmentManager().putFragment(outState, RETAINED_LIST_FRAGMENT, listFragment);
+            }
+
+            if (detailFragment != null) {
+                getSupportFragmentManager().putFragment(outState, RETAINED_DETAIL_FRAGMENT, detailFragment);
+            }
+
+            if (editFragment != null) {
+                getSupportFragmentManager().putFragment(outState, RETAINED_EDIT_FRAGMENT, editFragment);
+            }
 
         } else {
 
