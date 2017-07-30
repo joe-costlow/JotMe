@@ -4,10 +4,13 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import java.util.ArrayList;
 
 
 /**
@@ -73,6 +76,30 @@ public class ListFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_list, container, false);
 
         recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler);
+
+//        start of mock data collection     TODO collect real data
+        ArrayList<Jot> jotsData = new ArrayList<>();
+
+        for (int i = 1; i <= 20; i++) {
+
+            Jot jot = new Jot();
+            jot.setTitle("Title " + i);
+            jot.setTagOne("Tag One");
+            jot.setTagTwo("Tag Two");
+            jot.setTagThree("Tag Three");
+
+            jotsData.add(jot);
+
+        }
+//        end of mock data collection
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        layoutManager.setReverseLayout(true);
+        layoutManager.setStackFromEnd(true);
+        recyclerView.setLayoutManager(layoutManager);
+
+        JotAdapter mAdapter = new JotAdapter(jotsData);
+        recyclerView.setAdapter(mAdapter);
 
         // Inflate the layout for this fragment
         return rootView;

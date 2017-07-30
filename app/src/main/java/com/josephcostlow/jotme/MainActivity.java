@@ -42,20 +42,24 @@ public class MainActivity extends AppCompatActivity {
 
             if (savedInstanceState == null) {
 
+                listFragment = new ListFragment();
                 detailFragment = new DetailFragment();
-                editFragment = new EditFragment();
+//                editFragment = new EditFragment();
                 getSupportFragmentManager().beginTransaction()
                         .add(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
-                        .add(R.id.frame_left, editFragment, INITIAL_EDIT_FRAGMENT)
+                        .add(R.id.frame_left, listFragment, INITIAL_LIST_FRAGMENT)
                         .commit();
 
             } else {
 
+                listFragment = (ListFragment) getSupportFragmentManager()
+                        .findFragmentByTag(RETAINED_LIST_FRAGMENT);
+
                 detailFragment = (DetailFragment) getSupportFragmentManager()
                         .findFragmentByTag(RETAINED_DETAIL_FRAGMENT);
 
-                editFragment = (EditFragment) getSupportFragmentManager()
-                        .findFragmentByTag(RETAINED_EDIT_FRAGMENT);
+//                editFragment = (EditFragment) getSupportFragmentManager()
+//                        .findFragmentByTag(RETAINED_EDIT_FRAGMENT);
 
             }
 
@@ -63,20 +67,20 @@ public class MainActivity extends AppCompatActivity {
 
             if (savedInstanceState == null) {
 
-//                listFragment = new ListFragment();
-//                getSupportFragmentManager().beginTransaction()
-//                        .add(R.id.frame_full, listFragment, INITIAL_LIST_FRAGMENT)
-//                        .commit();
+                listFragment = new ListFragment();
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.frame_full, listFragment, INITIAL_LIST_FRAGMENT)
+                        .commit();
 
 //                detailFragment = new DetailFragment();
 //                getSupportFragmentManager().beginTransaction()
 //                        .add(R.id.frame_full, detailFragment, INITIAL_DETAIL_FRAGMENT)
 //                        .commit();
 
-                editFragment = new EditFragment();
-                getSupportFragmentManager().beginTransaction()
-                        .add(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
-                        .commit();
+//                editFragment = new EditFragment();
+//                getSupportFragmentManager().beginTransaction()
+//                        .add(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
+//                        .commit();
 
             } else {
 
