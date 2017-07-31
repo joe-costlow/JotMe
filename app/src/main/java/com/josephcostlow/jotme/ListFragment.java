@@ -199,13 +199,10 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     @Override
     public void onPause() {
         super.onPause();
-        mOnClickListener = null;
     }
 
     @Override
     public void onStop() {
         super.onStop();
-
-
     }
 }
