@@ -38,9 +38,14 @@ public class DetailFragment extends Fragment {
     private String TAG_THREE_KEY = "tagThree";
     private String MESSAGE_KEY = "message";
 
+    private String title, tagOne, tagTwo, tagThree, message;
+
     TextView labelTitle, labelTags, labelMessage;
     TextView textTitle, textTagOne, textTagTwo, textTagThree, textMessage;
     ScrollView messageSV;
+
+//    ArrayList<Jot> jots;
+//    private String BUNDLE_POSITION = "position";
 
     Bundle bundle;
 
@@ -97,38 +102,41 @@ public class DetailFragment extends Fragment {
         if (savedInstanceState != null) {
 
             if (savedInstanceState.containsKey(TITLE_KEY)) {
-                textTitle.setText(savedInstanceState.getString(TITLE_KEY));
+                title = savedInstanceState.getString(TITLE_KEY);
             }
 
             if (savedInstanceState.containsKey(TAG_ONE_KEY)) {
-                textTagOne.setText(savedInstanceState.getString(TAG_ONE_KEY));
+                tagOne = savedInstanceState.getString(TAG_ONE_KEY);
             }
 
             if (savedInstanceState.containsKey(TAG_TWO_KEY)) {
-                textTagTwo.setText(savedInstanceState.getString(TAG_TWO_KEY));
-            }
-
-            if (savedInstanceState.containsKey(TAG_TWO_KEY)) {
-                textTagTwo.setText(savedInstanceState.getString(TAG_TWO_KEY));
+                tagTwo = savedInstanceState.getString(TAG_TWO_KEY);
             }
 
             if (savedInstanceState.containsKey(TAG_THREE_KEY)) {
-                textTagThree.setText(savedInstanceState.getString(TAG_THREE_KEY));
+                tagThree = savedInstanceState.getString(TAG_THREE_KEY);
             }
 
             if (savedInstanceState.containsKey(MESSAGE_KEY)) {
-                textMessage.setText(savedInstanceState.getString(MESSAGE_KEY));
+                message = savedInstanceState.getString(MESSAGE_KEY);
             }
+
+            setText(title, tagOne, tagTwo, tagThree, message);
+
         }
 
-        textTitle.setText(getResources().getText(R.string.sample_title));
-        textTagOne.setText(getResources().getText(R.string.sample_tag));
-        textTagTwo.setText(getResources().getText(R.string.sample_tag));
-        textTagThree.setText(getResources().getText(R.string.sample_tag));
-        textMessage.setText(getResources().getText(R.string.sample_message));
+//        setText(title, tagOne, tagTwo, tagThree, message);
 
         // Inflate the layout for this fragment
         return rootView;
+    }
+
+    public void setText(String title, String tagOne, String tagTwo, String tagThree, String message) {
+        textTitle.setText(title);
+        textTagOne.setText(tagOne);
+        textTagTwo.setText(tagTwo);
+        textTagThree.setText(tagThree);
+        textMessage.setText(message);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -170,10 +178,20 @@ public class DetailFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-//        bundle = getArguments();
-//        if (bundle != null) {
+        bundle = getArguments();
+        if (bundle != null) {
 //            TODO implement bundle when interface is made
-//        }
+            title = bundle.getString(TITLE_KEY);
+            tagOne = bundle.getString(TAG_ONE_KEY);
+            tagTwo = bundle.getString(TAG_TWO_KEY);
+            tagThree = bundle.getString(TAG_THREE_KEY);
+            message = bundle.getString(MESSAGE_KEY);
+//
+            setText(title, tagOne, tagTwo, tagThree, message);
+
+//            int position = bundle.getInt(BUNDLE_POSITION, 0);
+//            setText(position);
+        }
     }
 
     /**

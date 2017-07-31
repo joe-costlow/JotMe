@@ -21,7 +21,7 @@ import java.util.ArrayList;
  * Use the {@link ListFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ListFragment extends Fragment {
+public class ListFragment extends Fragment implements JotAdapter.OnItemClickListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -33,11 +33,26 @@ public class ListFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
+    OnItemClick mOnClickListener;
+
+    ArrayList<Jot> jotsData;
+    Context context;
+    JotAdapter mAdapter;
+
+    private String AUTO_SELECTOR_KEY = "autoSelector";
+    public static boolean autoSelector;
+    public static int clickedPosition;
+    private String CLICKED_POSITION = "clickedPosition";
 
     RecyclerView recyclerView;
 
     public ListFragment() {
         // Required empty public constructor
+    }
+
+    public interface OnItemClick {
+        void OnListItemClick(String title, String tagOne, String tagTwo, String tagThree, String message);
+//        void OnListItemClick(int position);
     }
 
     /**
@@ -77,8 +92,10 @@ public class ListFragment extends Fragment {
 
         recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler);
 
+        context = getContext();
+
 //        start of mock data collection     TODO collect real data
-        ArrayList<Jot> jotsData = new ArrayList<>();
+        jotsData = new ArrayList<>();
 
         for (int i = 1; i <= 20; i++) {
 
@@ -87,6 +104,7 @@ public class ListFragment extends Fragment {
             jot.setTagOne("Tag One");
             jot.setTagTwo("Tag Two");
             jot.setTagThree("Tag Three");
+            jot.setMessage("This is a sample message " + i);
 
             jotsData.add(jot);
 
@@ -98,8 +116,15 @@ public class ListFragment extends Fragment {
         layoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(layoutManager);
 
-        JotAdapter mAdapter = new JotAdapter(jotsData);
+        mAdapter = new JotAdapter(context, jotsData);
         recyclerView.setAdapter(mAdapter);
+        mAdapter.setClickListener(this);
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(AUTO_SELECTOR_KEY)) {
+            autoSelector = savedInstanceState.getBoolean(AUTO_SELECTOR_KEY);
+        } else {
+            autoSelector = true;
+        }
 
         // Inflate the layout for this fragment
         return rootView;
@@ -121,12 +146,33 @@ public class ListFragment extends Fragment {
 //            throw new RuntimeException(context.toString()
 //                    + " must implement OnFragmentInteractionListener");
 //        }
+
+        try {
+            mOnClickListener = (OnItemClick) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + "must implement OnItemClick");
+        }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        mOnClickListener = null;
+    }
+
+    @Override
+    public void onClick(View view, int position) {
+
+        autoSelector = false;
+        clickedPosition = position;
+
+        String title = jotsData.get(position).getTitle();
+        String tagOne = jotsData.get(position).getTagOne();
+        String tagTwo = jotsData.get(position).getTagTwo();
+        String tagThree = jotsData.get(position).getTagThree();
+        String message = jotsData.get(position).getMessage();
+        mOnClickListener.OnListItemClick(title, tagOne, tagTwo, tagThree, message);
     }
 
     /**
@@ -142,5 +188,24 @@ public class ListFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(AUTO_SELECTOR_KEY, autoSelector);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mOnClickListener = null;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+
     }
 }

@@ -1,5 +1,6 @@
 package com.josephcostlow.jotme;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,9 +16,30 @@ import java.util.ArrayList;
 public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
     private ArrayList<Jot> jotsData;
+    private Context context;
+    OnItemClickListener mListener;
 
-    public JotAdapter(ArrayList<Jot> jotsData) {
+    private boolean mDualPane;
+//    DetailFragment detailFragment;
+//    FragmentManager fragmentManager;
+//    private String INITIAL_DETAIL_FRAGMENT = "initialDetailFragment";
+//    private String BUNDLE_TITLE = "title";
+//    private String BUNDLE_TAG_ONE = "tagOne";
+//    private String BUNDLE_TAG_TWO = "tagTwo";
+//    private String BUNDLE_TAG_THREE = "tagThree";
+//    private String BUNDLE_MESSAGE = "message";
+
+    private boolean autoSelector;
+    private int clickedPosition;
+
+    public JotAdapter(Context context, ArrayList<Jot> jotsData) {
         this.jotsData = jotsData;
+        this.context = context;
+        mDualPane = context.getResources().getBoolean(R.bool.dual_pane);
+    }
+
+    public interface OnItemClickListener {
+        void onClick(View view, int position);
     }
 
     @Override
@@ -26,9 +48,9 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.list_item, parent, false);
 
-        ViewHolder viewHolder = new ViewHolder(view);
+//        ViewHolder viewHolder = new ViewHolder(view);
 
-        return viewHolder;
+        return new ViewHolder(view);
     }
 
     @Override
@@ -39,6 +61,8 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
         holder.tagTwo.setText(jotsData.get(position).getTagTwo());
         holder.tagThree.setText(jotsData.get(position).getTagThree());
 
+        autoSelector = ListFragment.autoSelector;
+        clickedPosition = ListFragment.clickedPosition;
     }
 
     @Override
@@ -46,7 +70,9 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
         return jotsData.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public void setClickListener(OnItemClickListener clickListener) {this.mListener = clickListener;}
+
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         public TextView title, tagOne, tagTwo, tagThree;
 
@@ -58,6 +84,15 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
             tagOne = (TextView) itemView.findViewById(R.id.list_item_tag_one);
             tagTwo = (TextView) itemView.findViewById(R.id.list_item_tag_two);
             tagThree = (TextView) itemView.findViewById(R.id.list_item_tag_three);
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View view) {
+
+            if (mListener != null) {
+                mListener.onClick(view, getAdapterPosition());
+            }
         }
     }
 }
