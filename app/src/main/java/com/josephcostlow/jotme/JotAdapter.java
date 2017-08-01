@@ -23,13 +23,15 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
     private boolean mDualPane;
     DetailFragment detailFragment;
+    EditFragment editFragment;
 
-    private String INITIAL_DETAIL_FRAGMENT = "initialDetailFragment";
-    private String BUNDLE_TITLE = "title";
-    private String BUNDLE_TAG_ONE = "tagOne";
-    private String BUNDLE_TAG_TWO = "tagTwo";
-    private String BUNDLE_TAG_THREE = "tagThree";
-    private String BUNDLE_MESSAGE = "message";
+    private String INITIAL_EDIT_FRAGMENT = MainActivity.INITIAL_EDIT_FRAGMENT;
+    private String INITIAL_DETAIL_FRAGMENT = MainActivity.INITIAL_DETAIL_FRAGMENT;
+    private String BUNDLE_TITLE = MainActivity.BUNDLE_TITLE;
+    private String BUNDLE_TAG_ONE = MainActivity.BUNDLE_TAG_ONE;
+    private String BUNDLE_TAG_TWO = MainActivity.BUNDLE_TAG_TWO;
+    private String BUNDLE_TAG_THREE = MainActivity.BUNDLE_TAG_THREE;
+    private String BUNDLE_MESSAGE = MainActivity.BUNDLE_MESSAGE;
 
     private boolean autoSelector;
     private int clickedPosition;
@@ -88,6 +90,7 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
         FragmentManager fragmentManager = ((MainActivity) context).getSupportFragmentManager();
         detailFragment = new DetailFragment();
+        editFragment = new EditFragment();
 
         Bundle bundle = new Bundle();
         String title = jotsData.get(position).getTitle();
@@ -101,10 +104,15 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
         bundle.putString(BUNDLE_TAG_THREE, tagThree);
         bundle.putString(BUNDLE_MESSAGE, message);
         detailFragment.setArguments(bundle);
+        editFragment.setArguments(bundle);
 
         fragmentManager.beginTransaction()
                 .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
                 .commit();
+
+//        fragmentManager.beginTransaction()
+//                .replace(R.id.frame_right, editFragment, INITIAL_EDIT_FRAGMENT)
+//                .commit();
 
     }
 

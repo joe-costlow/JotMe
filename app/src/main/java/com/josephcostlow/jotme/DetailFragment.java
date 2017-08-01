@@ -32,11 +32,11 @@ public class DetailFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
-    private String TITLE_KEY = "title";
-    private String TAG_ONE_KEY = "tagOne";
-    private String TAG_TWO_KEY = "tagTwo";
-    private String TAG_THREE_KEY = "tagThree";
-    private String MESSAGE_KEY = "message";
+    private String TITLE_KEY = MainActivity.TITLE_KEY;
+    private String TAG_ONE_KEY = MainActivity.TAG_ONE_KEY;
+    private String TAG_TWO_KEY = MainActivity.TAG_TWO_KEY;
+    private String TAG_THREE_KEY = MainActivity.TAG_THREE_KEY;
+    private String MESSAGE_KEY = MainActivity.MESSAGE_KEY;
 
     private String title, tagOne, tagTwo, tagThree, message;
 
@@ -131,8 +131,6 @@ public class DetailFragment extends Fragment {
                 tagTwo = bundle.getString(TAG_TWO_KEY);
                 tagThree = bundle.getString(TAG_THREE_KEY);
                 message = bundle.getString(MESSAGE_KEY);
-
-                setText(title, tagOne, tagTwo, tagThree, message);
             }
         }
 

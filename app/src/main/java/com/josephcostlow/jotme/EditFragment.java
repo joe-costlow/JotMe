@@ -31,9 +31,18 @@ public class EditFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
+    private String TITLE_KEY = MainActivity.TITLE_KEY;
+    private String TAG_ONE_KEY = MainActivity.TAG_ONE_KEY;
+    private String TAG_TWO_KEY = MainActivity.TAG_TWO_KEY;
+    private String TAG_THREE_KEY = MainActivity.TAG_THREE_KEY;
+    private String MESSAGE_KEY = MainActivity.MESSAGE_KEY;
+
+    private String title, tagOne, tagTwo, tagThree, message;
 
     TextView labelTitle, labelTags, labelMessage;
     EditText editTitle, editTagOne, editTagTwo, editTagThree, editMessage;
+
+    Bundle bundle;
 
     public EditFragment() {
         // Required empty public constructor
@@ -84,6 +93,43 @@ public class EditFragment extends Fragment {
         editTagThree = (EditText) rootView.findViewById(R.id.edit_edit_tag_three);
         editMessage = (EditText) rootView.findViewById(R.id.edit_edit_message);
 
+        if (savedInstanceState != null) {
+
+            if (savedInstanceState.containsKey(TITLE_KEY)) {
+                title = savedInstanceState.getString(TITLE_KEY);
+            }
+
+            if (savedInstanceState.containsKey(TAG_ONE_KEY)) {
+                tagOne = savedInstanceState.getString(TAG_ONE_KEY);
+            }
+
+            if (savedInstanceState.containsKey(TAG_TWO_KEY)) {
+                tagTwo = savedInstanceState.getString(TAG_TWO_KEY);
+            }
+
+            if (savedInstanceState.containsKey(TAG_THREE_KEY)) {
+                tagThree = savedInstanceState.getString(TAG_THREE_KEY);
+            }
+
+            if (savedInstanceState.containsKey(MESSAGE_KEY)) {
+                message = savedInstanceState.getString(MESSAGE_KEY);
+            }
+
+        } else {
+
+            bundle = getArguments();
+            if (bundle != null) {
+//            TODO implement bundle when interface is made
+                title = bundle.getString(TITLE_KEY);
+                tagOne = bundle.getString(TAG_ONE_KEY);
+                tagTwo = bundle.getString(TAG_TWO_KEY);
+                tagThree = bundle.getString(TAG_THREE_KEY);
+                message = bundle.getString(MESSAGE_KEY);
+            }
+        }
+
+        setEditText(title, tagOne, tagTwo, tagThree, message);
+
 //        editTitle.setText(getResources().getText(R.string.sample_title));
 //        editTagOne.setText(getResources().getText(R.string.sample_tag));
 //        editTagTwo.setText(getResources().getText(R.string.sample_tag));
@@ -93,6 +139,14 @@ public class EditFragment extends Fragment {
 
         // Inflate the layout for this fragment
         return rootView;
+    }
+
+    public void setEditText(String title, String tagOne, String tagTwo, String tagThree, String message) {
+        editTitle.setText(title);
+        editTagOne.setText(tagOne);
+        editTagTwo.setText(tagTwo);
+        editTagThree.setText(tagThree);
+        editMessage.setText(message);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -117,6 +171,17 @@ public class EditFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putString(TITLE_KEY, editTitle.getText().toString());
+        outState.putString(TAG_ONE_KEY, editTagOne.getText().toString());
+        outState.putString(TAG_TWO_KEY, editTagTwo.getText().toString());
+        outState.putString(TAG_THREE_KEY, editTagThree.getText().toString());
+        outState.putString(MESSAGE_KEY, editMessage.getText().toString());
     }
 
     /**
