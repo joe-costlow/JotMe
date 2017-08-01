@@ -1,6 +1,8 @@
 package com.josephcostlow.jotme;
 
 import android.content.Context;
+import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,14 +22,14 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
     OnItemClickListener mListener;
 
     private boolean mDualPane;
-//    DetailFragment detailFragment;
-//    FragmentManager fragmentManager;
-//    private String INITIAL_DETAIL_FRAGMENT = "initialDetailFragment";
-//    private String BUNDLE_TITLE = "title";
-//    private String BUNDLE_TAG_ONE = "tagOne";
-//    private String BUNDLE_TAG_TWO = "tagTwo";
-//    private String BUNDLE_TAG_THREE = "tagThree";
-//    private String BUNDLE_MESSAGE = "message";
+    DetailFragment detailFragment;
+
+    private String INITIAL_DETAIL_FRAGMENT = "initialDetailFragment";
+    private String BUNDLE_TITLE = "title";
+    private String BUNDLE_TAG_ONE = "tagOne";
+    private String BUNDLE_TAG_TWO = "tagTwo";
+    private String BUNDLE_TAG_THREE = "tagThree";
+    private String BUNDLE_MESSAGE = "message";
 
     private boolean autoSelector;
     private int clickedPosition;
@@ -63,6 +65,47 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
         autoSelector = ListFragment.autoSelector;
         clickedPosition = ListFragment.clickedPosition;
+
+        if (mDualPane) {
+
+            if (autoSelector && position == jotsData.size() - 1) {
+
+                int auto = jotsData.size() - 1;
+                bundleBuild(auto);
+
+            } else {
+
+                if (clickedPosition == position) {
+
+                    int auto = clickedPosition;
+                    bundleBuild(auto);
+                }
+            }
+        }
+    }
+
+    private void bundleBuild(int position) {
+
+        FragmentManager fragmentManager = ((MainActivity) context).getSupportFragmentManager();
+        detailFragment = new DetailFragment();
+
+        Bundle bundle = new Bundle();
+        String title = jotsData.get(position).getTitle();
+        String tagOne = jotsData.get(position).getTagOne();
+        String tagTwo = jotsData.get(position).getTagTwo();
+        String tagThree = jotsData.get(position).getTagThree();
+        String message = jotsData.get(position).getMessage();
+        bundle.putString(BUNDLE_TITLE, title);
+        bundle.putString(BUNDLE_TAG_ONE, tagOne);
+        bundle.putString(BUNDLE_TAG_TWO, tagTwo);
+        bundle.putString(BUNDLE_TAG_THREE, tagThree);
+        bundle.putString(BUNDLE_MESSAGE, message);
+        detailFragment.setArguments(bundle);
+
+        fragmentManager.beginTransaction()
+                .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
+                .commit();
+
     }
 
     @Override

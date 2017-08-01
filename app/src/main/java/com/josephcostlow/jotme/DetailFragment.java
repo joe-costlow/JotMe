@@ -121,11 +121,22 @@ public class DetailFragment extends Fragment {
                 message = savedInstanceState.getString(MESSAGE_KEY);
             }
 
-            setText(title, tagOne, tagTwo, tagThree, message);
+        } else {
 
+            bundle = getArguments();
+            if (bundle != null) {
+//            TODO implement bundle when interface is made
+                title = bundle.getString(TITLE_KEY);
+                tagOne = bundle.getString(TAG_ONE_KEY);
+                tagTwo = bundle.getString(TAG_TWO_KEY);
+                tagThree = bundle.getString(TAG_THREE_KEY);
+                message = bundle.getString(MESSAGE_KEY);
+
+                setText(title, tagOne, tagTwo, tagThree, message);
+            }
         }
 
-//        setText(title, tagOne, tagTwo, tagThree, message);
+        setText(title, tagOne, tagTwo, tagThree, message);
 
         // Inflate the layout for this fragment
         return rootView;
@@ -178,20 +189,20 @@ public class DetailFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        bundle = getArguments();
-        if (bundle != null) {
+//        bundle = getArguments();
+//        if (bundle != null) {
 //            TODO implement bundle when interface is made
-            title = bundle.getString(TITLE_KEY);
-            tagOne = bundle.getString(TAG_ONE_KEY);
-            tagTwo = bundle.getString(TAG_TWO_KEY);
-            tagThree = bundle.getString(TAG_THREE_KEY);
-            message = bundle.getString(MESSAGE_KEY);
+//            title = bundle.getString(TITLE_KEY);
+//            tagOne = bundle.getString(TAG_ONE_KEY);
+//            tagTwo = bundle.getString(TAG_TWO_KEY);
+//            tagThree = bundle.getString(TAG_THREE_KEY);
+//            message = bundle.getString(MESSAGE_KEY);
 //
-            setText(title, tagOne, tagTwo, tagThree, message);
-
+//            setText(title, tagOne, tagTwo, tagThree, message);
+//
 //            int position = bundle.getInt(BUNDLE_POSITION, 0);
 //            setText(position);
-        }
+//        }
     }
 
     /**

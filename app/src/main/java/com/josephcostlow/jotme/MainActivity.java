@@ -117,6 +117,15 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
+        listFragment = (ListFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_LIST_FRAGMENT);
+
+        detailFragment = (DetailFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+
+        editFragment = (EditFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_EDIT_FRAGMENT);
+
         if (mDualPane) {
 
             if (listFragment != null) {
@@ -150,11 +159,11 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
     @Override
     public void OnListItemClick(String title, String tagOne, String tagTwo, String tagThree, String message) {
 
-        OnClick(title, tagOne, tagTwo, tagThree, message);
+        RecyclerItemClick(title, tagOne, tagTwo, tagThree, message);
 
     }
 
-    public void OnClick(String title, String tagOne, String tagTwo, String tagThree, String message) {
+    public void RecyclerItemClick(String title, String tagOne, String tagTwo, String tagThree, String message) {
 
         detailFragment = (DetailFragment) getSupportFragmentManager().findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
 
@@ -186,6 +195,5 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
                         .commit();
             }
         }
-
     }
 }
