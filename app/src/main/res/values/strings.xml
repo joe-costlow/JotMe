@@ -10,6 +10,11 @@
     <string name="empty_recycler_text">There are no Jots to display</string>
     <string name="empty_recycler_detail_text">Add a Jot by clicking + button</string>
 
+    <!-- Main toolbar title texts -->
+    <string name="main_toolbar_title_detail">Detail</string>
+    <string name="main_toolbar_title_add">New Jot</string>
+    <string name="main_toolbar_title_edit">Edit Jot</string>
+
     <!-- Sample texts -->
     <string name="sample_message">This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text.</string>
     <string name="sample_title">This is a sample title</string>

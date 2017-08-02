@@ -6,7 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity implements ListFragment.OnItemClick {
+public class MainActivity extends AppCompatActivity implements ListFragment.OnItemClick,
+        DetailFragment.OnToolbarTitleTextEdit {
 
 //    constants for fragment tags
     public static final String RETAINED_LIST_FRAGMENT = "retainedListFragment";
@@ -57,6 +58,8 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
 
         mainToolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(mainToolbar);
+
+        mainToolbarTitle = (TextView) findViewById(R.id.main_toolbar_title);
 
         mDualPane = getResources().getBoolean(R.bool.dual_pane);
         addFAB = (FloatingActionButton) findViewById(R.id.fab_add);
@@ -134,20 +137,11 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
     @Override
     protected void onStop() {
         super.onStop();
-
-//        SharedPreferences.Editor editor = sharedPreferences.edit();
-//        editor.clear();
-//        editor.apply();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-//        sharedPreferences = getSharedPreferences(SHARED_PREFS_FILENAME, 0);
-//        SharedPreferences.Editor editor = sharedPreferences.edit();
-//        editor.clear();
-//        editor.apply();
     }
 
     @Override
@@ -194,6 +188,32 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
     }
 
     @Override
+    public void onBackPressed() {
+
+        if (!mDualPane) {
+
+            listFragment = (ListFragment) getSupportFragmentManager()
+                    .findFragmentByTag(INITIAL_LIST_FRAGMENT);
+
+            detailFragment = (DetailFragment) getSupportFragmentManager()
+                    .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+
+            editFragment = (EditFragment) getSupportFragmentManager()
+                    .findFragmentByTag(INITIAL_EDIT_FRAGMENT);
+
+            if (detailFragment != null && detailFragment.isVisible()) {
+                mainToolbarTitle.setText(getResources().getString(R.string.app_name));
+            }
+
+            if (editFragment != null && editFragment.isVisible()) {
+                mainToolbarTitle.setText(getResources().getString(R.string.main_toolbar_title_detail));
+            }
+        }
+
+        super.onBackPressed();
+    }
+
+    @Override
     public void OnListItemClick(String title, String tagOne, String tagTwo, String tagThree, String message) {
 
         RecyclerItemClick(title, tagOne, tagTwo, tagThree, message);
@@ -237,5 +257,11 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
                         .commit();
             }
         }
+    }
+
+
+    @Override
+    public void EditToolbarText(String title) {
+        mainToolbarTitle.setText(title);
     }
 }

@@ -56,6 +56,10 @@ public class DetailFragment extends Fragment {
 
     Bundle bundle;
 
+    OnToolbarTitleTextEdit mEditTitle;
+
+    private boolean mDualPane;
+
     public DetailFragment() {
         // Required empty public constructor
     }
@@ -95,6 +99,8 @@ public class DetailFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
+        mDualPane = getResources().getBoolean(R.bool.dual_pane);
+
         labelTitle = (TextView) rootView.findViewById(R.id.detail_label_title);
         labelTags = (TextView) rootView.findViewById(R.id.detail_label_tag);
         labelMessage = (TextView) rootView.findViewById(R.id.detail_label_message);
@@ -116,6 +122,10 @@ public class DetailFragment extends Fragment {
 
         if (recyclerIsEmpty) {
             ShowEmptyView();
+        }
+
+        if (!mDualPane) {
+            mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_detail));
         }
 
         if (savedInstanceState != null) {
@@ -142,28 +152,7 @@ public class DetailFragment extends Fragment {
 
             setText(title, tagOne, tagTwo, tagThree, message);
 
-        } else {
-
-//            bundle = getArguments();
-            if (bundle != null) {
-//            TODO implement bundle when interface is made
-//                title = bundle.getString(TITLE_KEY);
-//                tagOne = bundle.getString(TAG_ONE_KEY);
-//                tagTwo = bundle.getString(TAG_TWO_KEY);
-//                tagThree = bundle.getString(TAG_THREE_KEY);
-//                message = bundle.getString(MESSAGE_KEY);
-
-//            ShowEmptyView();
-//                ShowTextViews();
-
-            }
-// else {
-//
-//                ShowEmptyView();
-//            }
         }
-
-//        setText(title, tagOne, tagTwo, tagThree, message);
 
         // Inflate the layout for this fragment
         return rootView;
@@ -177,6 +166,10 @@ public class DetailFragment extends Fragment {
         textMessage.setText(message);
 
 //        ShowTextViews();
+    }
+
+    public interface OnToolbarTitleTextEdit {
+        void EditToolbarText(String title);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -195,6 +188,12 @@ public class DetailFragment extends Fragment {
 //            throw new RuntimeException(context.toString()
 //                    + " must implement OnFragmentInteractionListener");
 //        }
+
+        try {
+            mEditTitle = (OnToolbarTitleTextEdit) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + "must implement OnToolbarTitleTextEdit");
+        }
     }
 
     @Override
@@ -249,8 +248,8 @@ public class DetailFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
         bundle = getArguments();
+
         if (bundle != null) {
-//            TODO implement bundle when interface is made
             title = bundle.getString(TITLE_KEY);
             tagOne = bundle.getString(TAG_ONE_KEY);
             tagTwo = bundle.getString(TAG_TWO_KEY);
@@ -258,9 +257,6 @@ public class DetailFragment extends Fragment {
             message = bundle.getString(MESSAGE_KEY);
 
             setText(title, tagOne, tagTwo, tagThree, message);
-//
-//            int position = bundle.getInt(BUNDLE_POSITION, 0);
-//            setText(position);
         }
     }
 
