@@ -1,10 +1,12 @@
 package com.josephcostlow.jotme;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.CardView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,8 +46,13 @@ public class DetailFragment extends Fragment {
     TextView textTitle, textTagOne, textTagTwo, textTagThree, textMessage;
     ScrollView messageSV;
 
-//    ArrayList<Jot> jots;
-//    private String BUNDLE_POSITION = "position";
+    CardView emptyRecyclerCard;
+    TextView emptyView;
+
+    private boolean recyclerIsEmpty = ListFragment.recyclerIsEmpty;
+    SharedPreferences sharedPreferences;
+    private static final String SHARED_PREFS_FILENAME = "com.josephcostlow.jotme.shared";
+    private static final String SHARED_PREFS_EMPTY_RECYCLER_KEY = "emptyRecycler";
 
     Bundle bundle;
 
@@ -99,6 +106,18 @@ public class DetailFragment extends Fragment {
         textMessage = (TextView) rootView.findViewById(R.id.message_tv);
         messageSV = (ScrollView) rootView.findViewById(R.id.message_sv);
 
+        emptyRecyclerCard = (CardView) rootView.findViewById(R.id.empty_recycler_detail_card);
+        emptyView = (TextView) rootView.findViewById(R.id.empty_recycler_detail_textview);
+
+        ShowTextViews();
+
+        sharedPreferences = this.getActivity().getSharedPreferences(SHARED_PREFS_FILENAME, 0);
+        recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
+
+        if (recyclerIsEmpty) {
+            ShowEmptyView();
+        }
+
         if (savedInstanceState != null) {
 
             if (savedInstanceState.containsKey(TITLE_KEY)) {
@@ -121,20 +140,30 @@ public class DetailFragment extends Fragment {
                 message = savedInstanceState.getString(MESSAGE_KEY);
             }
 
+            setText(title, tagOne, tagTwo, tagThree, message);
+
         } else {
 
-            bundle = getArguments();
+//            bundle = getArguments();
             if (bundle != null) {
 //            TODO implement bundle when interface is made
-                title = bundle.getString(TITLE_KEY);
-                tagOne = bundle.getString(TAG_ONE_KEY);
-                tagTwo = bundle.getString(TAG_TWO_KEY);
-                tagThree = bundle.getString(TAG_THREE_KEY);
-                message = bundle.getString(MESSAGE_KEY);
+//                title = bundle.getString(TITLE_KEY);
+//                tagOne = bundle.getString(TAG_ONE_KEY);
+//                tagTwo = bundle.getString(TAG_TWO_KEY);
+//                tagThree = bundle.getString(TAG_THREE_KEY);
+//                message = bundle.getString(MESSAGE_KEY);
+
+//            ShowEmptyView();
+//                ShowTextViews();
+
             }
+// else {
+//
+//                ShowEmptyView();
+//            }
         }
 
-        setText(title, tagOne, tagTwo, tagThree, message);
+//        setText(title, tagOne, tagTwo, tagThree, message);
 
         // Inflate the layout for this fragment
         return rootView;
@@ -146,6 +175,8 @@ public class DetailFragment extends Fragment {
         textTagTwo.setText(tagTwo);
         textTagThree.setText(tagThree);
         textMessage.setText(message);
+
+//        ShowTextViews();
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -172,6 +203,36 @@ public class DetailFragment extends Fragment {
         mListener = null;
     }
 
+    private void ShowTextViews() {
+        labelTitle.setVisibility(View.VISIBLE);
+        labelTags.setVisibility(View.VISIBLE);
+        labelTitle.setVisibility(View.VISIBLE);
+        labelMessage.setVisibility(View.VISIBLE);
+        textTagOne.setVisibility(View.VISIBLE);
+        textTagTwo.setVisibility(View.VISIBLE);
+        textTagThree.setVisibility(View.VISIBLE);
+        textMessage.setVisibility(View.VISIBLE);
+        emptyRecyclerCard.setVisibility(View.GONE);
+    }
+
+    private void ShowEmptyView() {
+        labelTitle.setVisibility(View.GONE);
+        labelTags.setVisibility(View.GONE);
+        labelTitle.setVisibility(View.GONE);
+        labelMessage.setVisibility(View.GONE);
+        textTagOne.setVisibility(View.GONE);
+        textTagTwo.setVisibility(View.GONE);
+        textTagThree.setVisibility(View.GONE);
+        textMessage.setVisibility(View.GONE);
+        emptyRecyclerCard.setVisibility(View.VISIBLE);
+
+        SetEmptyRecyclerText();
+    }
+
+    private void SetEmptyRecyclerText() {
+        emptyView.setText(R.string.empty_recycler_detail_text);
+    }
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -187,20 +248,20 @@ public class DetailFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-//        bundle = getArguments();
-//        if (bundle != null) {
+        bundle = getArguments();
+        if (bundle != null) {
 //            TODO implement bundle when interface is made
-//            title = bundle.getString(TITLE_KEY);
-//            tagOne = bundle.getString(TAG_ONE_KEY);
-//            tagTwo = bundle.getString(TAG_TWO_KEY);
-//            tagThree = bundle.getString(TAG_THREE_KEY);
-//            message = bundle.getString(MESSAGE_KEY);
-//
-//            setText(title, tagOne, tagTwo, tagThree, message);
+            title = bundle.getString(TITLE_KEY);
+            tagOne = bundle.getString(TAG_ONE_KEY);
+            tagTwo = bundle.getString(TAG_TWO_KEY);
+            tagThree = bundle.getString(TAG_THREE_KEY);
+            message = bundle.getString(MESSAGE_KEY);
+
+            setText(title, tagOne, tagTwo, tagThree, message);
 //
 //            int position = bundle.getInt(BUNDLE_POSITION, 0);
 //            setText(position);
-//        }
+        }
     }
 
     /**

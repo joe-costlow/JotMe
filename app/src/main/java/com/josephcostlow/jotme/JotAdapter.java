@@ -52,8 +52,6 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.list_item, parent, false);
 
-//        ViewHolder viewHolder = new ViewHolder(view);
-
         return new ViewHolder(view);
     }
 
@@ -70,17 +68,23 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
         if (mDualPane) {
 
-            if (autoSelector && position == jotsData.size() - 1) {
+            if (!jotsData.isEmpty()) {
 
-                int auto = jotsData.size() - 1;
-                bundleBuild(auto);
+                if (autoSelector) {
 
-            } else {
+                    if (position == jotsData.size() - 1) {
 
-                if (clickedPosition == position) {
+                        int auto = position;
+                        bundleBuild(auto);
+                    }
 
-                    int auto = clickedPosition;
-                    bundleBuild(auto);
+                } else {
+
+                    if (clickedPosition == position) {
+
+                        int auto = position;
+                        bundleBuild(auto);
+                    }
                 }
             }
         }
@@ -140,6 +144,8 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
         @Override
         public void onClick(View view) {
+
+            autoSelector = false;
 
             if (mListener != null) {
                 mListener.onClick(view, getAdapterPosition());

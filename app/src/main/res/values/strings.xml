@@ -6,6 +6,10 @@
     <string name="label_tag">Tag(s)</string>
     <string name="label_message">Message</string>
 
+    <!-- Empty recycler and empty detail view texts -->
+    <string name="empty_recycler_text">There are no Jots to display</string>
+    <string name="empty_recycler_detail_text">Add a Jot by clicking + button</string>
+
     <!-- Sample texts -->
     <string name="sample_message">This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text.</string>
     <string name="sample_title">This is a sample title</string>

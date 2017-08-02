@@ -30,9 +30,15 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
     public static final String TAG_THREE_KEY = "tagThree";
     public static final String MESSAGE_KEY = "message";
 
-//    private ArrayList<Jot> jots;
-//    private String BUNDLE_POSITION = "position";
-//    private Jot jot = new Jot();
+//    constants for shared preferences
+    public static final String SHARED_PREFS_FILENAME = "com.josephcostlow.jotme.shared";
+    public static final String SHARED_PREFS_AUTO_SELECT_KEY = "autoSelector";
+    public static final String SHARED_PREFS_CLICKED_POSITION_KEY = "clickedPosition";
+    public static final String SHARED_PREFS_EMPTY_RECYCLER_KEY = "emptyRecycler";
+
+//    constants for auto-select and clicked positions for List Fragment and List Adapter
+    public static final String AUTO_SELECTOR_KEY = "autoSelector";
+    public static final String CLICKED_POSITION_KEY = "clickedPosition";
 
     Toolbar mainToolbar;
     TextView mainToolbarTitle;
@@ -54,10 +60,6 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
 
         mDualPane = getResources().getBoolean(R.bool.dual_pane);
         addFAB = (FloatingActionButton) findViewById(R.id.fab_add);
-
-//        listFragment = new ListFragment();
-//        detailFragment = new DetailFragment();
-//        editFragment = new EditFragment();
 
         if (mDualPane) {
 
@@ -122,6 +124,30 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
 
             }
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+//        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        editor.clear();
+//        editor.apply();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+//        sharedPreferences = getSharedPreferences(SHARED_PREFS_FILENAME, 0);
+//        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        editor.clear();
+//        editor.apply();
     }
 
     @Override
@@ -211,38 +237,5 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
                         .commit();
             }
         }
-
-//        if (editFragment != null && editFragment.isVisible()) {
-//
-//            editFragment.setEditText(title, tagOne, tagTwo, tagThree, message);
-//
-//        } else {
-//
-//            editFragment = new EditFragment();
-//
-//            Bundle bundle = new Bundle();
-//            bundle.putString(BUNDLE_TITLE, title);
-//            bundle.putString(BUNDLE_TAG_ONE, tagOne);
-//            bundle.putString(BUNDLE_TAG_TWO, tagTwo);
-//            bundle.putString(BUNDLE_TAG_THREE, tagThree);
-//            bundle.putString(BUNDLE_MESSAGE, message);
-//
-//            editFragment.setArguments(bundle);
-//
-//            if (mDualPane) {
-////                getSupportFragmentManager().beginTransaction()
-////                        .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
-////                        .commit();
-//
-//                getSupportFragmentManager().beginTransaction()
-//                        .replace(R.id.frame_right, editFragment, INITIAL_EDIT_FRAGMENT)
-//                        .commit();
-//            } else {
-//                getSupportFragmentManager().beginTransaction()
-//                        .replace(R.id.frame_full, editFragment, INITIAL_DETAIL_FRAGMENT)
-//                        .addToBackStack(null)
-//                        .commit();
-//            }
-//        }
     }
 }

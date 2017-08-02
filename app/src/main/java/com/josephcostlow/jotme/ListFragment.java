@@ -1,14 +1,17 @@
 package com.josephcostlow.jotme;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -38,13 +41,24 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     ArrayList<Jot> jotsData;
     Context context;
     JotAdapter mAdapter;
+    private boolean mDualPane;
 
-    private String AUTO_SELECTOR_KEY = "autoSelector";
+    private String AUTO_SELECTOR_KEY = MainActivity.AUTO_SELECTOR_KEY;
+    private String CLICKED_POSITION_KEY = MainActivity.CLICKED_POSITION_KEY;
     public static boolean autoSelector;
     public static int clickedPosition;
-    private String CLICKED_POSITION = "clickedPosition";
+
+    private String SHARED_PREFS_FILENAME = MainActivity.SHARED_PREFS_FILENAME;
+    private String SHARED_PREFS_AUTO_SELECT_KEY = MainActivity.SHARED_PREFS_AUTO_SELECT_KEY;
+    private String SHARED_PREFS_CLICKED_POSITION_KEY = MainActivity.SHARED_PREFS_CLICKED_POSITION_KEY;
+    private String SHARED_PREFS_EMPTY_RECYCLER_KEY = MainActivity.SHARED_PREFS_EMPTY_RECYCLER_KEY;
+    SharedPreferences sharedPreferences;
 
     RecyclerView recyclerView;
+    CardView emptyRecyclerCard;
+    TextView emptyView;
+
+    public static boolean recyclerIsEmpty;
 
     public ListFragment() {
         // Required empty public constructor
@@ -52,7 +66,6 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
 
     public interface OnItemClick {
         void OnListItemClick(String title, String tagOne, String tagTwo, String tagThree, String message);
-//        void OnListItemClick(int position);
     }
 
     /**
@@ -91,8 +104,11 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         View rootView = inflater.inflate(R.layout.fragment_list, container, false);
 
         recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler);
+        emptyRecyclerCard = (CardView) rootView.findViewById(R.id.empty_recycler_card);
+        emptyView = (TextView) rootView.findViewById(R.id.empty_recycler_textview);
 
         context = getContext();
+        mDualPane = context.getResources().getBoolean(R.bool.dual_pane);
 
 //        start of mock data collection     TODO collect real data
         jotsData = new ArrayList<>();
@@ -107,24 +123,62 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
             jot.setMessage("This is a sample message " + i);
 
             jotsData.add(jot);
-
         }
 //        end of mock data collection
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
-        layoutManager.setReverseLayout(true);
-        layoutManager.setStackFromEnd(true);
-        recyclerView.setLayoutManager(layoutManager);
-
-        mAdapter = new JotAdapter(context, jotsData);
-        recyclerView.setAdapter(mAdapter);
-        mAdapter.setClickListener(this);
-
-        if (savedInstanceState != null && savedInstanceState.containsKey(AUTO_SELECTOR_KEY)) {
-            autoSelector = savedInstanceState.getBoolean(AUTO_SELECTOR_KEY);
+        if (jotsData.isEmpty()) {
+            recyclerIsEmpty = true;
+            HideRecycler();
         } else {
-            autoSelector = true;
+            recyclerIsEmpty = false;
+            ShowRecycler();
+
+            LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
+            layoutManager.setReverseLayout(true);
+            layoutManager.setStackFromEnd(true);
+            recyclerView.setLayoutManager(layoutManager);
+
+            mAdapter = new JotAdapter(context, jotsData);
+            recyclerView.setAdapter(mAdapter);
+            mAdapter.setClickListener(this);
+
+            if (mDualPane) {
+
+                if (savedInstanceState != null) {
+
+                    if (savedInstanceState.containsKey(AUTO_SELECTOR_KEY)) {
+                        autoSelector = savedInstanceState.getBoolean(AUTO_SELECTOR_KEY);
+                    }
+
+                    if (savedInstanceState.containsKey(CLICKED_POSITION_KEY)) {
+                        clickedPosition = savedInstanceState.getInt(CLICKED_POSITION_KEY);
+                    }
+
+                } else {
+
+                    sharedPreferences = this.getActivity().getSharedPreferences(SHARED_PREFS_FILENAME, 0);
+                    autoSelector = sharedPreferences.getBoolean(SHARED_PREFS_AUTO_SELECT_KEY, true);
+                    clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, mAdapter.getItemCount() - 1);
+
+                    if (autoSelector) {
+                        clickedPosition = mAdapter.getItemCount() - 1;
+                    }
+
+                    if (clickedPosition > mAdapter.getItemCount() - 1) {
+                        clickedPosition = mAdapter.getItemCount() - 1;
+                    }
+                }
+
+                recyclerView.smoothScrollToPosition(clickedPosition);
+            }
         }
+
+        sharedPreferences = this.getActivity().getSharedPreferences(SHARED_PREFS_FILENAME, 0);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(SHARED_PREFS_AUTO_SELECT_KEY, autoSelector);
+        editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition);
+        editor.putBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, recyclerIsEmpty);
+        editor.apply();
 
         // Inflate the layout for this fragment
         return rootView;
@@ -167,12 +221,33 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         autoSelector = false;
         clickedPosition = position;
 
+        sharedPreferences = this.getActivity().getSharedPreferences(SHARED_PREFS_FILENAME, 0);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(SHARED_PREFS_AUTO_SELECT_KEY, autoSelector);
+        editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition);
+        editor.apply();
+
         String title = jotsData.get(position).getTitle();
         String tagOne = jotsData.get(position).getTagOne();
         String tagTwo = jotsData.get(position).getTagTwo();
         String tagThree = jotsData.get(position).getTagThree();
         String message = jotsData.get(position).getMessage();
         mOnClickListener.OnListItemClick(title, tagOne, tagTwo, tagThree, message);
+    }
+
+    private void ShowRecycler() {
+        recyclerView.setVisibility(View.VISIBLE);
+        emptyRecyclerCard.setVisibility(View.GONE);
+    }
+
+    private void HideRecycler() {
+        recyclerView.setVisibility(View.GONE);
+        emptyRecyclerCard.setVisibility(View.VISIBLE);
+        SetEmptyRecyclerText();
+    }
+
+    private void SetEmptyRecyclerText() {
+        emptyView.setText(R.string.empty_recycler_text);
     }
 
     /**
@@ -194,15 +269,19 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean(AUTO_SELECTOR_KEY, autoSelector);
+        outState.putInt(CLICKED_POSITION_KEY, clickedPosition);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-    }
 
-    @Override
-    public void onStop() {
-        super.onStop();
+        if (mDualPane) {
+            sharedPreferences = this.getActivity().getSharedPreferences(SHARED_PREFS_FILENAME, 0);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(SHARED_PREFS_AUTO_SELECT_KEY, autoSelector);
+            editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition);
+            editor.apply();
+        }
     }
 }
