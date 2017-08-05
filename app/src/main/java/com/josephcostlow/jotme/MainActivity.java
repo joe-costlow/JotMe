@@ -4,10 +4,11 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.View;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity implements ListFragment.OnItemClick,
-        DetailFragment.OnToolbarTitleTextEdit {
+        DetailFragment.OnToolbarTitleTextEdit, EditFragment.OnToolbarTitleTextEdit {
 
 //    constants for fragment tags
     public static final String RETAINED_LIST_FRAGMENT = "retainedListFragment";
@@ -63,6 +64,33 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
 
         mDualPane = getResources().getBoolean(R.bool.dual_pane);
         addFAB = (FloatingActionButton) findViewById(R.id.fab_add);
+        addFAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                editFragment = new EditFragment();
+
+                Bundle bundle = new Bundle();
+                String title = "";
+                String tagOne = "";
+                String tagTwo = "";
+                String tagThree = "";
+                String message = "";
+                bundle.putString(BUNDLE_TITLE, title);
+                bundle.putString(BUNDLE_TAG_ONE, tagOne);
+                bundle.putString(BUNDLE_TAG_TWO, tagTwo);
+                bundle.putString(BUNDLE_TAG_THREE, tagThree);
+                bundle.putString(BUNDLE_MESSAGE, message);
+
+                editFragment.setArguments(bundle);
+
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
+                        .addToBackStack(null)
+                        .commit();
+
+            }
+        });
 
         if (mDualPane) {
 
@@ -190,23 +218,19 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
     @Override
     public void onBackPressed() {
 
+        listFragment = (ListFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_LIST_FRAGMENT);
+
+        detailFragment = (DetailFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+
+        editFragment = (EditFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_EDIT_FRAGMENT);
+
         if (!mDualPane) {
-
-            listFragment = (ListFragment) getSupportFragmentManager()
-                    .findFragmentByTag(INITIAL_LIST_FRAGMENT);
-
-            detailFragment = (DetailFragment) getSupportFragmentManager()
-                    .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
-
-            editFragment = (EditFragment) getSupportFragmentManager()
-                    .findFragmentByTag(INITIAL_EDIT_FRAGMENT);
 
             if (detailFragment != null && detailFragment.isVisible()) {
                 mainToolbarTitle.setText(getResources().getString(R.string.app_name));
-            }
-
-            if (editFragment != null && editFragment.isVisible()) {
-                mainToolbarTitle.setText(getResources().getString(R.string.main_toolbar_title_detail));
             }
         }
 

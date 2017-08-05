@@ -151,11 +151,20 @@ public class DetailFragment extends Fragment {
             }
 
             setText(title, tagOne, tagTwo, tagThree, message);
-
         }
 
         // Inflate the layout for this fragment
         return rootView;
+    }
+
+    @Override
+    public void onPause() {
+
+        if (!mDualPane) {
+            mEditTitle.EditToolbarText(getResources().getString(R.string.app_name));
+        }
+
+        super.onPause();
     }
 
     public void setText(String title, String tagOne, String tagTwo, String tagThree, String message) {
@@ -164,8 +173,6 @@ public class DetailFragment extends Fragment {
         textTagTwo.setText(tagTwo);
         textTagThree.setText(tagThree);
         textMessage.setText(message);
-
-//        ShowTextViews();
     }
 
     public interface OnToolbarTitleTextEdit {

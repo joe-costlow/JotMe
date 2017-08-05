@@ -44,6 +44,8 @@ public class EditFragment extends Fragment {
 
     Bundle bundle;
 
+    OnToolbarTitleTextEdit mEditTitle;
+
     public EditFragment() {
         // Required empty public constructor
     }
@@ -93,6 +95,14 @@ public class EditFragment extends Fragment {
         editTagThree = (EditText) rootView.findViewById(R.id.edit_edit_tag_three);
         editMessage = (EditText) rootView.findViewById(R.id.edit_edit_message);
 
+        mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_add));
+
+        if (bundle == null) {
+            mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_add));  //TODO check to see if adding or editing
+        } else {
+            mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_edit));
+        }
+
         if (savedInstanceState != null) {
 
             if (savedInstanceState.containsKey(TITLE_KEY)) {
@@ -130,13 +140,6 @@ public class EditFragment extends Fragment {
 
         setEditText(title, tagOne, tagTwo, tagThree, message);
 
-//        editTitle.setText(getResources().getText(R.string.sample_title));
-//        editTagOne.setText(getResources().getText(R.string.sample_tag));
-//        editTagTwo.setText(getResources().getText(R.string.sample_tag));
-//        editTagThree.setText(getResources().getText(R.string.sample_tag));
-//        editMessage.setText(getResources().getText(R.string.sample_message));
-//        editMessage.setText("This is a sample message");
-
         // Inflate the layout for this fragment
         return rootView;
     }
@@ -147,6 +150,10 @@ public class EditFragment extends Fragment {
         editTagTwo.setText(tagTwo);
         editTagThree.setText(tagThree);
         editMessage.setText(message);
+    }
+
+    public interface OnToolbarTitleTextEdit {
+        void EditToolbarText(String title);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -165,6 +172,20 @@ public class EditFragment extends Fragment {
 //            throw new RuntimeException(context.toString()
 //                    + " must implement OnFragmentInteractionListener");
 //        }
+
+        try {
+            mEditTitle = (OnToolbarTitleTextEdit) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + "must implement OnToolbarTitleTextEdit");
+        }
+    }
+
+    @Override
+    public void onPause() {
+
+        mEditTitle.EditToolbarText(getResources().getString(R.string.app_name));
+
+        super.onPause();
     }
 
     @Override

@@ -2,4 +2,5 @@
 <resources>
     <dimen name="constraint_top_margin">56dp</dimen>
     <dimen name="list_side_margin">8dp</dimen>      <!-- not used right now -->
+    <dimen name="fab_margin">16dp</dimen>
 </resources>
