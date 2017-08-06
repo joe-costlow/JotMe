@@ -17,15 +17,11 @@ import java.util.ArrayList;
 
 public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
+    OnItemClickListener mListener;
+    DetailFragment detailFragment;
     private ArrayList<Jot> jotsData;
     private Context context;
-    OnItemClickListener mListener;
-
     private boolean mDualPane;
-    DetailFragment detailFragment;
-    EditFragment editFragment;
-
-    private String INITIAL_EDIT_FRAGMENT = MainActivity.INITIAL_EDIT_FRAGMENT;
     private String INITIAL_DETAIL_FRAGMENT = MainActivity.INITIAL_DETAIL_FRAGMENT;
     private String BUNDLE_TITLE = MainActivity.BUNDLE_TITLE;
     private String BUNDLE_TAG_ONE = MainActivity.BUNDLE_TAG_ONE;
@@ -40,10 +36,6 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
         this.jotsData = jotsData;
         this.context = context;
         mDualPane = context.getResources().getBoolean(R.bool.dual_pane);
-    }
-
-    public interface OnItemClickListener {
-        void onClick(View view, int position);
     }
 
     @Override
@@ -94,7 +86,6 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
         FragmentManager fragmentManager = ((MainActivity) context).getSupportFragmentManager();
         detailFragment = new DetailFragment();
-        editFragment = new EditFragment();
 
         Bundle bundle = new Bundle();
         String title = jotsData.get(position).getTitle();
@@ -108,16 +99,10 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
         bundle.putString(BUNDLE_TAG_THREE, tagThree);
         bundle.putString(BUNDLE_MESSAGE, message);
         detailFragment.setArguments(bundle);
-        editFragment.setArguments(bundle);
 
         fragmentManager.beginTransaction()
                 .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
                 .commit();
-
-//        fragmentManager.beginTransaction()
-//                .replace(R.id.frame_right, editFragment, INITIAL_EDIT_FRAGMENT)
-//                .commit();
-
     }
 
     @Override
@@ -126,6 +111,10 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
     }
 
     public void setClickListener(OnItemClickListener clickListener) {this.mListener = clickListener;}
+
+    public interface OnItemClickListener {
+        void onClick(View view, int position);
+    }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 

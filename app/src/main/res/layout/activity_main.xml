@@ -40,42 +40,12 @@
         android:layout_height="match_parent"
         android:layout_marginTop="@dimen/constraint_top_margin">
 
-
-
-        <!--
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Hello World!"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-            -->
-
-        <!--
-        <android.support.constraint.Guideline
-            android:id="@+id/guideline_left"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="8dp"/>
-            -->
-
         <android.support.constraint.Guideline
             android:id="@+id/guideline_center"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:orientation="vertical"
             app:layout_constraintGuide_percent=".40"/>
-
-        <!--
-        <android.support.constraint.Guideline
-            android:id="@+id/guideline_right"
-            android:layout_width="0dp"
-            android:layout_height="match_parent" />
-            -->
 
         <FrameLayout
             android:id="@+id/frame_left"
@@ -138,19 +108,6 @@
         app:useCompatPadding="true" />
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab_cancel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/upper_fab_margin"
-        android:layout_marginEnd="@dimen/fab_margin"
-        android:layout_marginRight="@dimen/fab_margin"
-        android:src="@drawable/ic_cancel_holo_dark"
-        app:fabSize="auto"
-        app:layout_anchor="@id/constraintLayout"
-        app:layout_anchorGravity="bottom|end"
-        app:useCompatPadding="true" />
-
-    <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_edit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -177,6 +134,19 @@
         app:useCompatPadding="true" />
 
     <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_cancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/upper_fab_margin"
+        android:layout_marginEnd="@dimen/fab_margin"
+        android:layout_marginRight="@dimen/fab_margin"
+        android:src="@drawable/ic_cancel_holo_dark"
+        app:fabSize="auto"
+        app:layout_anchor="@id/constraintLayout"
+        app:layout_anchorGravity="bottom|end"
+        app:useCompatPadding="true" />
+
+    <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_save"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -185,8 +155,8 @@
         android:layout_marginRight="@dimen/fab_margin"
         android:src="@drawable/ic_save_holo_dark"
         app:fabSize="auto"
-        app:layout_anchor="@+id/constraintLayout"
-        app:layout_anchorGravity="bottom|right"
+        app:layout_anchor="@id/constraintLayout"
+        app:layout_anchorGravity="bottom|end"
         app:useCompatPadding="true" />
 
 </android.support.design.widget.CoordinatorLayout>

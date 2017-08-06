@@ -1,5 +1,6 @@
 package com.josephcostlow.jotme;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -48,10 +49,16 @@ public class MainActivity extends AppCompatActivity implements
     public ListFragment listFragment;
     public DetailFragment detailFragment;
     public EditFragment editFragment;
+
+    //    misc
     Toolbar mainToolbar;
     TextView mainToolbarTitle;
     boolean mDualPane;
     FloatingActionButton addFAB, cancelFAB, saveFAB, editFAB, deleteFAB;
+    SharedPreferences sharedPreferences;
+
+//    TODO on home button press and return, no FABs
+//    TODO on orientation change in edit fragment (Dual Pane), new and add FABs show
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,13 +68,24 @@ public class MainActivity extends AppCompatActivity implements
         mainToolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(mainToolbar);
 
+        sharedPreferences = getSharedPreferences(SHARED_PREFS_FILENAME, 0);
+
         mainToolbarTitle = (TextView) findViewById(R.id.main_toolbar_title);
 
         mDualPane = getResources().getBoolean(R.bool.dual_pane);
+
         addFAB = (FloatingActionButton) findViewById(R.id.fab_add);
         addFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                listFragment = (ListFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_LIST_FRAGMENT);
+
+                detailFragment = (DetailFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+
+                mainToolbarTitle.setText(getResources().getText(R.string.main_toolbar_title_add));
 
                 editFragment = new EditFragment();
 
@@ -85,11 +103,70 @@ public class MainActivity extends AppCompatActivity implements
 
                 editFragment.setArguments(bundle);
 
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
-                        .addToBackStack(null)
-                        .commit();
+                if (mDualPane) {
 
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
+                            .remove(listFragment)
+                            .remove(detailFragment)
+                            .addToBackStack(null)
+                            .commit();
+
+                } else {
+
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
+                            .addToBackStack(null)
+                            .commit();
+                }
+            }
+        });
+
+        editFAB = (FloatingActionButton) findViewById(R.id.fab_edit);
+        editFAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                listFragment = (ListFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_LIST_FRAGMENT);
+
+                detailFragment = (DetailFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+
+                String[] currentJot = detailFragment.DataForEdit();
+
+                String title = currentJot[0];
+                String tagOne = currentJot[1];
+                String tagTwo = currentJot[2];
+                String tagThree = currentJot[3];
+                String message = currentJot[4];
+
+                Bundle bundle = new Bundle();
+                bundle.putString(TITLE_KEY, title);
+                bundle.putString(TAG_ONE_KEY, tagOne);
+                bundle.putString(TAG_TWO_KEY, tagTwo);
+                bundle.putString(TAG_THREE_KEY, tagThree);
+                bundle.putString(MESSAGE_KEY, message);
+
+                editFragment = new EditFragment();
+                editFragment.setArguments(bundle);
+
+                if (mDualPane) {
+
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
+                            .remove(listFragment)
+                            .remove(detailFragment)
+                            .addToBackStack(null)
+                            .commit();
+
+                } else {
+
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
+                            .addToBackStack(null)
+                            .commit();
+                }
             }
         });
 
@@ -98,19 +175,33 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
 
+                listFragment = (ListFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_LIST_FRAGMENT);
+
+                detailFragment = (DetailFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+
+                editFragment = (EditFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_EDIT_FRAGMENT);
+
+                if (mDualPane) {
+
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frame_left, listFragment, INITIAL_LIST_FRAGMENT)
+                            .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
+                            .remove(editFragment)
+                            .commit();
+
+                } else {
+
+                    onBackPressed();
+                }
+
             }
         });
 
         saveFAB = (FloatingActionButton) findViewById(R.id.fab_save);
         saveFAB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
-
-        editFAB = (FloatingActionButton) findViewById(R.id.fab_edit);
-        editFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -125,10 +216,6 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
-//        editFAB.setVisibility(View.GONE);
-//        deleteFAB.setVisibility(View.GONE);
-//        saveFAB.setVisibility(View.GONE);
-//        cancelFAB.setVisibility(View.GONE);
         HideAllFABs();
 
         if (mDualPane) {
@@ -137,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements
 
                 listFragment = new ListFragment();
                 detailFragment = new DetailFragment();
-                editFragment = new EditFragment();
+
                 getSupportFragmentManager().beginTransaction()
                         .add(R.id.frame_left, listFragment, INITIAL_LIST_FRAGMENT)
                         .add(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
@@ -151,8 +238,8 @@ public class MainActivity extends AppCompatActivity implements
                 detailFragment = (DetailFragment) getSupportFragmentManager()
                         .findFragmentByTag(RETAINED_DETAIL_FRAGMENT);
 
-//                editFragment = (EditFragment) getSupportFragmentManager()
-//                        .findFragmentByTag(RETAINED_EDIT_FRAGMENT);
+                editFragment = (EditFragment) getSupportFragmentManager()
+                        .findFragmentByTag(RETAINED_EDIT_FRAGMENT);
 
             }
 
@@ -164,16 +251,6 @@ public class MainActivity extends AppCompatActivity implements
                 getSupportFragmentManager().beginTransaction()
                         .add(R.id.frame_full, listFragment, INITIAL_LIST_FRAGMENT)
                         .commit();
-
-//                detailFragment = new DetailFragment();
-//                getSupportFragmentManager().beginTransaction()
-//                        .add(R.id.frame_full, detailFragment, INITIAL_DETAIL_FRAGMENT)
-//                        .commit();
-
-//                editFragment = new EditFragment();
-//                getSupportFragmentManager().beginTransaction()
-//                        .add(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
-//                        .commit();
 
             } else {
 
@@ -266,14 +343,29 @@ public class MainActivity extends AppCompatActivity implements
         editFragment = (EditFragment) getSupportFragmentManager()
                 .findFragmentByTag(INITIAL_EDIT_FRAGMENT);
 
-        if (!mDualPane) {
+        if (mDualPane) {
+
+            if (editFragment != null && editFragment.isVisible()) {
+
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.frame_left, listFragment, INITIAL_LIST_FRAGMENT)
+                        .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
+                        .remove(editFragment)
+                        .commit();
+            }
+
+            if (listFragment != null && listFragment.isVisible()) {
+                finish();
+            }
 
             if (detailFragment != null && detailFragment.isVisible()) {
-                mainToolbarTitle.setText(getResources().getString(R.string.app_name));
+                finish();
             }
-        }
 
-        super.onBackPressed();
+        } else {
+
+            super.onBackPressed();
+        }
     }
 
     @Override
@@ -286,7 +378,6 @@ public class MainActivity extends AppCompatActivity implements
     public void RecyclerItemClick(String title, String tagOne, String tagTwo, String tagThree, String message) {
 
         detailFragment = (DetailFragment) getSupportFragmentManager().findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
-//        editFragment = (EditFragment) getSupportFragmentManager().findFragmentByTag(INITIAL_EDIT_FRAGMENT);
 
         if (detailFragment != null && detailFragment.isVisible()) {
 
@@ -310,9 +401,6 @@ public class MainActivity extends AppCompatActivity implements
                         .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
                         .commit();
 
-//                getSupportFragmentManager().beginTransaction()
-//                        .replace(R.id.frame_right, editFragment, INITIAL_EDIT_FRAGMENT)
-//                        .commit();
             } else {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.frame_full, detailFragment, INITIAL_DETAIL_FRAGMENT)
@@ -333,13 +421,15 @@ public class MainActivity extends AppCompatActivity implements
         HideAllFABs();
 
         ShowAddFAB();
-//        HideSaveFAB();
-//        HideCancelFAB();
-//        HideDeleteFAB();
-//        HideEditFAB();
 
         if (mDualPane) {
             ShowEditFAB();
+        }
+
+        boolean recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
+
+        if (recyclerIsEmpty) {
+            HideEditFAB();
         }
     }
 
@@ -354,18 +444,19 @@ public class MainActivity extends AppCompatActivity implements
 
         ShowEditFAB();
 
-//        HideCancelFAB();
-//        HideSaveFAB();
-
         if (mDualPane) {
 
             ShowAddFAB();
-//            HideDeleteFAB();
 
         } else {
 
             ShowDeleteFAB();
-//            HideAddFAB();
+        }
+
+        boolean recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
+
+        if (recyclerIsEmpty) {
+            HideEditFAB();
         }
     }
 
@@ -389,6 +480,12 @@ public class MainActivity extends AppCompatActivity implements
         if (mDualPane) {
             ShowAddFAB();
             ShowEditFAB();
+        }
+
+        boolean recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
+
+        if (recyclerIsEmpty) {
+            HideEditFAB();
         }
     }
 

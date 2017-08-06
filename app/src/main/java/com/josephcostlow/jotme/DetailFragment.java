@@ -264,9 +264,26 @@ public class DetailFragment extends Fragment {
         }
     }
 
+    public String[] DataForEdit() {
+        String[] currentJot = new String[5];
+
+        String mainTitle = textTitle.getText().toString();
+        String mainTagOne = textTagOne.getText().toString();
+        String mainTagTwo = textTagTwo.getText().toString();
+        String mainTagThree = textTagThree.getText().toString();
+        String mainMessage = textMessage.getText().toString();
+
+        currentJot[0] = mainTitle;
+        currentJot[1] = mainTagOne;
+        currentJot[2] = mainTagTwo;
+        currentJot[3] = mainTagThree;
+        currentJot[4] = mainMessage;
+
+        return currentJot;
+    }
+
     public interface OnFABHide {
         void EnterHideFABDetail();
-
         void ExitHideFABDetail();
     }
 

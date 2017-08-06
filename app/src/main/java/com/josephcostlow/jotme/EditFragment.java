@@ -3,6 +3,7 @@ package com.josephcostlow.jotme;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -91,14 +92,6 @@ public class EditFragment extends Fragment {
 
         mFABHide.EnterHideFABEdit();
 
-        mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_add));
-
-        if (bundle == null) {
-            mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_add));  //TODO check to see if adding or editing
-        } else {
-            mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_edit));
-        }
-
         if (savedInstanceState != null) {
 
             if (savedInstanceState.containsKey(TITLE_KEY)) {
@@ -121,20 +114,9 @@ public class EditFragment extends Fragment {
                 message = savedInstanceState.getString(MESSAGE_KEY);
             }
 
-        } else {
+            setEditText(title, tagOne, tagTwo, tagThree, message);
 
-            bundle = getArguments();
-            if (bundle != null) {
-//            TODO implement bundle when interface is made
-                title = bundle.getString(TITLE_KEY);
-                tagOne = bundle.getString(TAG_ONE_KEY);
-                tagTwo = bundle.getString(TAG_TWO_KEY);
-                tagThree = bundle.getString(TAG_THREE_KEY);
-                message = bundle.getString(MESSAGE_KEY);
-            }
         }
-
-        setEditText(title, tagOne, tagTwo, tagThree, message);
 
         // Inflate the layout for this fragment
         return rootView;
@@ -146,6 +128,12 @@ public class EditFragment extends Fragment {
         editTagTwo.setText(tagTwo);
         editTagThree.setText(tagThree);
         editMessage.setText(message);
+
+        if (!title.isEmpty()) {
+            mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_edit));
+        } else {
+            mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_add));
+        }
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -202,6 +190,22 @@ public class EditFragment extends Fragment {
         outState.putString(TAG_TWO_KEY, editTagTwo.getText().toString());
         outState.putString(TAG_THREE_KEY, editTagThree.getText().toString());
         outState.putString(MESSAGE_KEY, editMessage.getText().toString());
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        bundle = getArguments();
+        if (bundle != null) {
+            title = bundle.getString(TITLE_KEY);
+            tagOne = bundle.getString(TAG_ONE_KEY);
+            tagTwo = bundle.getString(TAG_TWO_KEY);
+            tagThree = bundle.getString(TAG_THREE_KEY);
+            message = bundle.getString(MESSAGE_KEY);
+
+            setEditText(title, tagOne, tagTwo, tagThree, message);
+        }
     }
 
     public interface OnFABHide {

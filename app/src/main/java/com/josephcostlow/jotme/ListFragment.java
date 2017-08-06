@@ -100,8 +100,6 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         context = getContext();
         mDualPane = context.getResources().getBoolean(R.bool.dual_pane);
 
-        mFABHide.EnterHideFABList();
-
 //        start of mock data collection     TODO collect real data
         jotsData = new ArrayList<>();
 
@@ -164,6 +162,8 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
                 recyclerView.smoothScrollToPosition(clickedPosition);
             }
         }
+
+        mFABHide.EnterHideFABList();
 
         sharedPreferences = this.getActivity().getSharedPreferences(SHARED_PREFS_FILENAME, 0);
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -276,7 +276,6 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
 
     public interface OnFABHide {
         void EnterHideFABList();
-
         void ExitHideFABList();
     }
 
