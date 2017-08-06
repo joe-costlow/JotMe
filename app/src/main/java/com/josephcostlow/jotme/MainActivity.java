@@ -7,8 +7,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity implements ListFragment.OnItemClick,
-        DetailFragment.OnToolbarTitleTextEdit, EditFragment.OnToolbarTitleTextEdit {
+public class MainActivity extends AppCompatActivity implements
+        ListFragment.OnItemClick,
+        ListFragment.OnFABHide,
+        DetailFragment.OnToolbarTitleTextEdit, EditFragment.OnToolbarTitleTextEdit,
+        DetailFragment.OnFABHide,
+        EditFragment.OnFABHide {
 
 //    constants for fragment tags
     public static final String RETAINED_LIST_FRAGMENT = "retainedListFragment";
@@ -41,16 +45,13 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
 //    constants for auto-select and clicked positions for List Fragment and List Adapter
     public static final String AUTO_SELECTOR_KEY = "autoSelector";
     public static final String CLICKED_POSITION_KEY = "clickedPosition";
-
-    Toolbar mainToolbar;
-    TextView mainToolbarTitle;
-
-    boolean mDualPane;
-    FloatingActionButton addFAB;
-
     public ListFragment listFragment;
     public DetailFragment detailFragment;
     public EditFragment editFragment;
+    Toolbar mainToolbar;
+    TextView mainToolbarTitle;
+    boolean mDualPane;
+    FloatingActionButton addFAB, cancelFAB, saveFAB, editFAB, deleteFAB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +92,44 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
 
             }
         });
+
+        cancelFAB = (FloatingActionButton) findViewById(R.id.fab_cancel);
+        cancelFAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        saveFAB = (FloatingActionButton) findViewById(R.id.fab_save);
+        saveFAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        editFAB = (FloatingActionButton) findViewById(R.id.fab_edit);
+        editFAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        deleteFAB = (FloatingActionButton) findViewById(R.id.fab_delete);
+        deleteFAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+//        editFAB.setVisibility(View.GONE);
+//        deleteFAB.setVisibility(View.GONE);
+//        saveFAB.setVisibility(View.GONE);
+//        cancelFAB.setVisibility(View.GONE);
+        HideAllFABs();
 
         if (mDualPane) {
 
@@ -287,5 +326,117 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnIt
     @Override
     public void EditToolbarText(String title) {
         mainToolbarTitle.setText(title);
+    }
+
+    @Override
+    public void EnterHideFABList() {
+        HideAllFABs();
+
+        ShowAddFAB();
+//        HideSaveFAB();
+//        HideCancelFAB();
+//        HideDeleteFAB();
+//        HideEditFAB();
+
+        if (mDualPane) {
+            ShowEditFAB();
+        }
+    }
+
+    @Override
+    public void ExitHideFABList() {
+        HideAllFABs();
+    }
+
+    @Override
+    public void EnterHideFABDetail() {
+        HideAllFABs();
+
+        ShowEditFAB();
+
+//        HideCancelFAB();
+//        HideSaveFAB();
+
+        if (mDualPane) {
+
+            ShowAddFAB();
+//            HideDeleteFAB();
+
+        } else {
+
+            ShowDeleteFAB();
+//            HideAddFAB();
+        }
+    }
+
+    @Override
+    public void ExitHideFABDetail() {
+        HideAllFABs();
+    }
+
+    @Override
+    public void EnterHideFABEdit() {
+        HideAllFABs();
+
+        ShowSaveFAB();
+        ShowCancelFAB();
+    }
+
+    @Override
+    public void ExitHideFABEdit() {
+        HideAllFABs();
+
+        if (mDualPane) {
+            ShowAddFAB();
+            ShowEditFAB();
+        }
+    }
+
+    public void HideAllFABs() {
+        HideCancelFAB();
+        HideSaveFAB();
+        HideAddFAB();
+        HideDeleteFAB();
+        HideEditFAB();
+    }
+
+    public void ShowAddFAB() {
+        addFAB.setVisibility(View.VISIBLE);
+    }
+
+    public void HideAddFAB() {
+        addFAB.setVisibility(View.GONE);
+    }
+
+    public void ShowEditFAB() {
+        editFAB.setVisibility(View.VISIBLE);
+    }
+
+    public void HideEditFAB() {
+        editFAB.setVisibility(View.GONE);
+    }
+
+    public void ShowDeleteFAB() {
+        deleteFAB.setVisibility(View.VISIBLE);
+    }
+
+    public void HideDeleteFAB() {
+        deleteFAB.setVisibility(View.GONE);
+    }
+
+    public void ShowCancelFAB() {
+        cancelFAB.setVisibility(View.VISIBLE);
+    }
+
+    public void HideCancelFAB() {
+        cancelFAB.setVisibility(View.GONE);
+    }
+
+    public void ShowSaveFAB() {
+        saveFAB.setVisibility(View.VISIBLE);
+    }
+
+    public void HideSaveFAB() {
+        saveFAB.setVisibility(View.GONE);
     }
 }

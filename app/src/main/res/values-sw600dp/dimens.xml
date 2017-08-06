@@ -3,4 +3,5 @@
     <dimen name="constraint_top_margin">64dp</dimen>
     <dimen name="list_side_margin">32dp</dimen>     <!-- not used right now -->
     <dimen name="fab_margin">24dp</dimen>
+    <dimen name="upper_fab_margin">88dp</dimen>
 </resources>

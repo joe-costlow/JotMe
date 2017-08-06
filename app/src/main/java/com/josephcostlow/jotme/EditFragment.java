@@ -24,27 +24,21 @@ public class EditFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-
+    TextView labelTitle, labelTags, labelMessage;
+    EditText editTitle, editTagOne, editTagTwo, editTagThree, editMessage;
+    Bundle bundle;
+    OnToolbarTitleTextEdit mEditTitle;
+    OnFABHide mFABHide;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
     private OnFragmentInteractionListener mListener;
-
     private String TITLE_KEY = MainActivity.TITLE_KEY;
     private String TAG_ONE_KEY = MainActivity.TAG_ONE_KEY;
     private String TAG_TWO_KEY = MainActivity.TAG_TWO_KEY;
     private String TAG_THREE_KEY = MainActivity.TAG_THREE_KEY;
     private String MESSAGE_KEY = MainActivity.MESSAGE_KEY;
-
     private String title, tagOne, tagTwo, tagThree, message;
-
-    TextView labelTitle, labelTags, labelMessage;
-    EditText editTitle, editTagOne, editTagTwo, editTagThree, editMessage;
-
-    Bundle bundle;
-
-    OnToolbarTitleTextEdit mEditTitle;
 
     public EditFragment() {
         // Required empty public constructor
@@ -94,6 +88,8 @@ public class EditFragment extends Fragment {
         editTagTwo = (EditText) rootView.findViewById(R.id.edit_edit_tag_two);
         editTagThree = (EditText) rootView.findViewById(R.id.edit_edit_tag_three);
         editMessage = (EditText) rootView.findViewById(R.id.edit_edit_message);
+
+        mFABHide.EnterHideFABEdit();
 
         mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_add));
 
@@ -152,10 +148,6 @@ public class EditFragment extends Fragment {
         editMessage.setText(message);
     }
 
-    public interface OnToolbarTitleTextEdit {
-        void EditToolbarText(String title);
-    }
-
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
@@ -178,12 +170,19 @@ public class EditFragment extends Fragment {
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + "must implement OnToolbarTitleTextEdit");
         }
+
+        try {
+            mFABHide = (OnFABHide) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + "must implement OnFABHide");
+        }
     }
 
     @Override
     public void onPause() {
 
         mEditTitle.EditToolbarText(getResources().getString(R.string.app_name));
+        mFABHide.ExitHideFABEdit();
 
         super.onPause();
     }
@@ -203,6 +202,16 @@ public class EditFragment extends Fragment {
         outState.putString(TAG_TWO_KEY, editTagTwo.getText().toString());
         outState.putString(TAG_THREE_KEY, editTagThree.getText().toString());
         outState.putString(MESSAGE_KEY, editMessage.getText().toString());
+    }
+
+    public interface OnFABHide {
+        void EnterHideFABEdit();
+
+        void ExitHideFABEdit();
+    }
+
+    public interface OnToolbarTitleTextEdit {
+        void EditToolbarText(String title);
     }
 
     /**

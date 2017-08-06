@@ -27,37 +27,28 @@ public class DetailFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-
+    private static final String SHARED_PREFS_FILENAME = "com.josephcostlow.jotme.shared";
+    private static final String SHARED_PREFS_EMPTY_RECYCLER_KEY = "emptyRecycler";
+    TextView labelTitle, labelTags, labelMessage;
+    TextView textTitle, textTagOne, textTagTwo, textTagThree, textMessage;
+    ScrollView messageSV;
+    CardView emptyRecyclerCard;
+    TextView emptyView;
+    SharedPreferences sharedPreferences;
+    Bundle bundle;
+    OnToolbarTitleTextEdit mEditTitle;
+    OnFABHide mFABHide;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
     private OnFragmentInteractionListener mListener;
-
     private String TITLE_KEY = MainActivity.TITLE_KEY;
     private String TAG_ONE_KEY = MainActivity.TAG_ONE_KEY;
     private String TAG_TWO_KEY = MainActivity.TAG_TWO_KEY;
     private String TAG_THREE_KEY = MainActivity.TAG_THREE_KEY;
     private String MESSAGE_KEY = MainActivity.MESSAGE_KEY;
-
     private String title, tagOne, tagTwo, tagThree, message;
-
-    TextView labelTitle, labelTags, labelMessage;
-    TextView textTitle, textTagOne, textTagTwo, textTagThree, textMessage;
-    ScrollView messageSV;
-
-    CardView emptyRecyclerCard;
-    TextView emptyView;
-
     private boolean recyclerIsEmpty = ListFragment.recyclerIsEmpty;
-    SharedPreferences sharedPreferences;
-    private static final String SHARED_PREFS_FILENAME = "com.josephcostlow.jotme.shared";
-    private static final String SHARED_PREFS_EMPTY_RECYCLER_KEY = "emptyRecycler";
-
-    Bundle bundle;
-
-    OnToolbarTitleTextEdit mEditTitle;
-
     private boolean mDualPane;
 
     public DetailFragment() {
@@ -128,6 +119,8 @@ public class DetailFragment extends Fragment {
             mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_detail));
         }
 
+        mFABHide.EnterHideFABDetail();
+
         if (savedInstanceState != null) {
 
             if (savedInstanceState.containsKey(TITLE_KEY)) {
@@ -164,6 +157,8 @@ public class DetailFragment extends Fragment {
             mEditTitle.EditToolbarText(getResources().getString(R.string.app_name));
         }
 
+        mFABHide.ExitHideFABDetail();
+
         super.onPause();
     }
 
@@ -173,10 +168,6 @@ public class DetailFragment extends Fragment {
         textTagTwo.setText(tagTwo);
         textTagThree.setText(tagThree);
         textMessage.setText(message);
-    }
-
-    public interface OnToolbarTitleTextEdit {
-        void EditToolbarText(String title);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -199,7 +190,13 @@ public class DetailFragment extends Fragment {
         try {
             mEditTitle = (OnToolbarTitleTextEdit) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + "must implement OnToolbarTitleTextEdit");
+            throw new ClassCastException(context.toString() + "must implement OnToolbarTitleTextEdit"); //TODO make string
+        }
+
+        try {
+            mFABHide = (OnFABHide) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + "must implement OnFABHide");  //TODO make string
         }
     }
 
@@ -265,6 +262,16 @@ public class DetailFragment extends Fragment {
 
             setText(title, tagOne, tagTwo, tagThree, message);
         }
+    }
+
+    public interface OnFABHide {
+        void EnterHideFABDetail();
+
+        void ExitHideFABDetail();
+    }
+
+    public interface OnToolbarTitleTextEdit {
+        void EditToolbarText(String title);
     }
 
     /**

@@ -29,43 +29,33 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-    private OnFragmentInteractionListener mListener;
-
+    public static boolean autoSelector;
+    public static int clickedPosition;
+    public static boolean recyclerIsEmpty;
     OnItemClick mOnClickListener;
 
     ArrayList<Jot> jotsData;
     Context context;
     JotAdapter mAdapter;
+    SharedPreferences sharedPreferences;
+    RecyclerView recyclerView;
+    CardView emptyRecyclerCard;
+    TextView emptyView;
+    OnFABHide mFABHide;
+    // TODO: Rename and change types of parameters
+    private String mParam1;
+    private String mParam2;
+    private OnFragmentInteractionListener mListener;
     private boolean mDualPane;
-
     private String AUTO_SELECTOR_KEY = MainActivity.AUTO_SELECTOR_KEY;
     private String CLICKED_POSITION_KEY = MainActivity.CLICKED_POSITION_KEY;
-    public static boolean autoSelector;
-    public static int clickedPosition;
-
     private String SHARED_PREFS_FILENAME = MainActivity.SHARED_PREFS_FILENAME;
     private String SHARED_PREFS_AUTO_SELECT_KEY = MainActivity.SHARED_PREFS_AUTO_SELECT_KEY;
     private String SHARED_PREFS_CLICKED_POSITION_KEY = MainActivity.SHARED_PREFS_CLICKED_POSITION_KEY;
     private String SHARED_PREFS_EMPTY_RECYCLER_KEY = MainActivity.SHARED_PREFS_EMPTY_RECYCLER_KEY;
-    SharedPreferences sharedPreferences;
-
-    RecyclerView recyclerView;
-    CardView emptyRecyclerCard;
-    TextView emptyView;
-
-    public static boolean recyclerIsEmpty;
 
     public ListFragment() {
         // Required empty public constructor
-    }
-
-    public interface OnItemClick {
-        void OnListItemClick(String title, String tagOne, String tagTwo, String tagThree, String message);
     }
 
     /**
@@ -109,6 +99,8 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
 
         context = getContext();
         mDualPane = context.getResources().getBoolean(R.bool.dual_pane);
+
+        mFABHide.EnterHideFABList();
 
 //        start of mock data collection     TODO collect real data
         jotsData = new ArrayList<>();
@@ -204,7 +196,13 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         try {
             mOnClickListener = (OnItemClick) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + "must implement OnItemClick");
+            throw new ClassCastException(context.toString() + "must implement OnItemClick");    //TODO make string
+        }
+
+        try {
+            mFABHide = (OnFABHide) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + "must implement OnFABHide");  //TODO make string
         }
     }
 
@@ -250,21 +248,6 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         emptyView.setText(R.string.empty_recycler_text);
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
-    }
-
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -283,5 +266,32 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
             editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition);
             editor.apply();
         }
+
+        mFABHide.ExitHideFABList();
+    }
+
+    public interface OnItemClick {
+        void OnListItemClick(String title, String tagOne, String tagTwo, String tagThree, String message);
+    }
+
+    public interface OnFABHide {
+        void EnterHideFABList();
+
+        void ExitHideFABList();
+    }
+
+    /**
+     * This interface must be implemented by activities that contain this
+     * fragment to allow an interaction in this fragment to be communicated
+     * to the activity and potentially other fragments contained in that
+     * activity.
+     * <p>
+     * See the Android Training lesson <a href=
+     * "http://developer.android.com/training/basics/fragments/communicating.html"
+     * >Communicating with Other Fragments</a> for more information.
+     */
+    public interface OnFragmentInteractionListener {
+        // TODO: Update argument type and name
+        void onFragmentInteraction(Uri uri);
     }
 }
