@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity implements
+        View.OnClickListener,
         ListFragment.OnToolbarTitleTextEdit,
         ListFragment.OnItemClick,
         ListFragment.OnFABHide,
@@ -77,146 +78,19 @@ public class MainActivity extends AppCompatActivity implements
         mDualPane = getResources().getBoolean(R.bool.dual_pane);
 
         addFAB = (FloatingActionButton) findViewById(R.id.fab_add);
-        addFAB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                listFragment = (ListFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_LIST_FRAGMENT);
-
-                detailFragment = (DetailFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
-
-                mainToolbarTitle.setText(getResources().getText(R.string.main_toolbar_title_add));
-
-                editFragment = new EditFragment();
-
-                Bundle bundle = new Bundle();
-                String title = "";
-                String tagOne = "";
-                String tagTwo = "";
-                String tagThree = "";
-                String message = "";
-                bundle.putString(BUNDLE_TITLE, title);
-                bundle.putString(BUNDLE_TAG_ONE, tagOne);
-                bundle.putString(BUNDLE_TAG_TWO, tagTwo);
-                bundle.putString(BUNDLE_TAG_THREE, tagThree);
-                bundle.putString(BUNDLE_MESSAGE, message);
-
-                editFragment.setArguments(bundle);
-
-                if (mDualPane) {
-
-                    getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
-                            .remove(listFragment)
-                            .remove(detailFragment)
-                            .addToBackStack(null)
-                            .commit();
-
-                } else {
-
-                    getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
-                            .addToBackStack(null)
-                            .commit();
-                }
-            }
-        });
+        addFAB.setOnClickListener(this);
 
         editFAB = (FloatingActionButton) findViewById(R.id.fab_edit);
-        editFAB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                listFragment = (ListFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_LIST_FRAGMENT);
-
-                detailFragment = (DetailFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
-
-                String[] currentJot = detailFragment.DataForEdit();
-
-                String title = currentJot[0];
-                String tagOne = currentJot[1];
-                String tagTwo = currentJot[2];
-                String tagThree = currentJot[3];
-                String message = currentJot[4];
-
-                Bundle bundle = new Bundle();
-                bundle.putString(TITLE_KEY, title);
-                bundle.putString(TAG_ONE_KEY, tagOne);
-                bundle.putString(TAG_TWO_KEY, tagTwo);
-                bundle.putString(TAG_THREE_KEY, tagThree);
-                bundle.putString(MESSAGE_KEY, message);
-
-                editFragment = new EditFragment();
-                editFragment.setArguments(bundle);
-
-                if (mDualPane) {
-
-                    getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
-                            .remove(listFragment)
-                            .remove(detailFragment)
-                            .addToBackStack(null)
-                            .commit();
-
-                } else {
-
-                    getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
-                            .addToBackStack(null)
-                            .commit();
-                }
-            }
-        });
+        editFAB.setOnClickListener(this);
 
         cancelFAB = (FloatingActionButton) findViewById(R.id.fab_cancel);
-        cancelFAB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                listFragment = (ListFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_LIST_FRAGMENT);
-
-                detailFragment = (DetailFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
-
-                editFragment = (EditFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_EDIT_FRAGMENT);
-
-                if (mDualPane) {
-
-                    getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.frame_left, listFragment, INITIAL_LIST_FRAGMENT)
-                            .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
-                            .remove(editFragment)
-                            .commit();
-
-                } else {
-
-                    onBackPressed();
-                }
-
-            }
-        });
+        cancelFAB.setOnClickListener(this);
 
         saveFAB = (FloatingActionButton) findViewById(R.id.fab_save);
-        saveFAB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
+        saveFAB.setOnClickListener(this);
 
         deleteFAB = (FloatingActionButton) findViewById(R.id.fab_delete);
-        deleteFAB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
+        deleteFAB.setOnClickListener(this);
 
         HideAllFABs();
 
@@ -273,6 +147,139 @@ public class MainActivity extends AppCompatActivity implements
 
             }
         }
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        String title, tagOne, tagTwo, tagThree, message;
+        Bundle bundle;
+
+        int fabID = v.getId();
+        switch (fabID) {
+
+            case R.id.fab_add:
+                listFragment = (ListFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_LIST_FRAGMENT);
+
+                detailFragment = (DetailFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+
+                mainToolbarTitle.setText(getResources().getText(R.string.main_toolbar_title_add));
+
+                editFragment = new EditFragment();
+
+                bundle = new Bundle();
+                title = "";
+                tagOne = "";
+                tagTwo = "";
+                tagThree = "";
+                message = "";
+                bundle.putString(BUNDLE_TITLE, title);
+                bundle.putString(BUNDLE_TAG_ONE, tagOne);
+                bundle.putString(BUNDLE_TAG_TWO, tagTwo);
+                bundle.putString(BUNDLE_TAG_THREE, tagThree);
+                bundle.putString(BUNDLE_MESSAGE, message);
+
+                editFragment.setArguments(bundle);
+
+                if (mDualPane) {
+
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
+                            .remove(listFragment)
+                            .remove(detailFragment)
+                            .addToBackStack(null)
+                            .commit();
+
+                } else {
+
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
+                            .addToBackStack(null)
+                            .commit();
+                }
+
+                break;
+
+            case R.id.fab_edit:
+                listFragment = (ListFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_LIST_FRAGMENT);
+
+                detailFragment = (DetailFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+
+                String[] currentJot = detailFragment.DataForEdit();
+
+                title = currentJot[0];
+                tagOne = currentJot[1];
+                tagTwo = currentJot[2];
+                tagThree = currentJot[3];
+                message = currentJot[4];
+
+                bundle = new Bundle();
+                bundle.putString(TITLE_KEY, title);
+                bundle.putString(TAG_ONE_KEY, tagOne);
+                bundle.putString(TAG_TWO_KEY, tagTwo);
+                bundle.putString(TAG_THREE_KEY, tagThree);
+                bundle.putString(MESSAGE_KEY, message);
+
+                editFragment = new EditFragment();
+                editFragment.setArguments(bundle);
+
+                if (mDualPane) {
+
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
+                            .remove(listFragment)
+                            .remove(detailFragment)
+                            .addToBackStack(null)
+                            .commit();
+
+                } else {
+
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
+                            .addToBackStack(null)
+                            .commit();
+                }
+
+                break;
+
+            case R.id.fab_cancel:
+                listFragment = (ListFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_LIST_FRAGMENT);
+
+                detailFragment = (DetailFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+
+                editFragment = (EditFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_EDIT_FRAGMENT);
+
+                if (mDualPane) {
+
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frame_left, listFragment, INITIAL_LIST_FRAGMENT)
+                            .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
+                            .remove(editFragment)
+                            .commit();
+
+                } else {
+
+                    onBackPressed();
+                }
+
+                break;
+
+            case R.id.fab_save:
+
+                break;
+
+            case R.id.fab_delete:
+
+                break;
+        }
+
     }
 
     @Override
