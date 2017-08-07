@@ -9,10 +9,12 @@ import android.view.View;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity implements
+        ListFragment.OnToolbarTitleTextEdit,
         ListFragment.OnItemClick,
         ListFragment.OnFABHide,
-        DetailFragment.OnToolbarTitleTextEdit, EditFragment.OnToolbarTitleTextEdit,
+        DetailFragment.OnToolbarTitleTextEdit,
         DetailFragment.OnFABHide,
+        EditFragment.OnToolbarTitleTextEdit,
         EditFragment.OnFABHide {
 
 //    constants for fragment tags
@@ -274,6 +276,65 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    protected void onRestart() {
+
+        listFragment = (ListFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_LIST_FRAGMENT);
+
+        detailFragment = (DetailFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+
+        editFragment = (EditFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_EDIT_FRAGMENT);
+
+        boolean recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
+
+        HideAllFABs();
+
+        if (mDualPane) {
+
+            if (listFragment != null && listFragment.isVisible()) {
+
+                HideAllFABs();
+                ShowAddFAB();
+                ShowEditFAB();
+
+                if (recyclerIsEmpty) {
+                    HideAllFABs();
+                    ShowAddFAB();
+                }
+            }
+
+            if (editFragment != null && editFragment.isVisible()) {
+                HideAllFABs();
+                ShowSaveFAB();
+                ShowCancelFAB();
+            }
+
+        } else {
+
+            if (listFragment != null && listFragment.isVisible()) {
+                HideAllFABs();
+                ShowAddFAB();
+            }
+
+            if (detailFragment != null && detailFragment.isVisible()) {
+                HideAllFABs();
+                ShowEditFAB();
+                ShowDeleteFAB();
+            }
+
+            if (editFragment != null && editFragment.isVisible()) {
+                HideAllFABs();
+                ShowSaveFAB();
+                ShowCancelFAB();
+            }
+        }
+
+        super.onRestart();
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
     }
@@ -476,11 +537,6 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void ExitHideFABEdit() {
         HideAllFABs();
-
-        if (mDualPane) {
-            ShowAddFAB();
-            ShowEditFAB();
-        }
 
         boolean recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
 

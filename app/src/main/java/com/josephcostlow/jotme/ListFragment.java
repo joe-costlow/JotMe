@@ -32,8 +32,6 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     public static boolean autoSelector;
     public static int clickedPosition;
     public static boolean recyclerIsEmpty;
-    OnItemClick mOnClickListener;
-
     ArrayList<Jot> jotsData;
     Context context;
     JotAdapter mAdapter;
@@ -41,7 +39,9 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     RecyclerView recyclerView;
     CardView emptyRecyclerCard;
     TextView emptyView;
-    OnFABHide mFABHide;
+    private OnItemClick mOnClickListener;
+    private OnFABHide mFABHide;
+    private OnToolbarTitleTextEdit mEditTitle;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -99,6 +99,8 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
 
         context = getContext();
         mDualPane = context.getResources().getBoolean(R.bool.dual_pane);
+
+        mEditTitle.EditToolbarText(getResources().getString(R.string.app_name));
 
 //        start of mock data collection     TODO collect real data
         jotsData = new ArrayList<>();
@@ -194,6 +196,12 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
 //        }
 
         try {
+            mEditTitle = (OnToolbarTitleTextEdit) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + "must implement OnToolbarTitleTextEdit"); //TODO make string
+        }
+
+        try {
             mOnClickListener = (OnItemClick) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + "must implement OnItemClick");    //TODO make string
@@ -277,6 +285,10 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     public interface OnFABHide {
         void EnterHideFABList();
         void ExitHideFABList();
+    }
+
+    public interface OnToolbarTitleTextEdit {
+        void EditToolbarText(String Title);
     }
 
     /**

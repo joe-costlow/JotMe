@@ -128,7 +128,7 @@ public class EditFragment extends Fragment {
         editTagTwo.setText(tagTwo);
         editTagThree.setText(tagThree);
         editMessage.setText(message);
-
+//        TODO change to tagOne with real data
         if (!title.isEmpty()) {
             mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_edit));
         } else {
@@ -169,7 +169,6 @@ public class EditFragment extends Fragment {
     @Override
     public void onPause() {
 
-        mEditTitle.EditToolbarText(getResources().getString(R.string.app_name));
         mFABHide.ExitHideFABEdit();
 
         super.onPause();

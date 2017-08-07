@@ -153,10 +153,6 @@ public class DetailFragment extends Fragment {
     @Override
     public void onPause() {
 
-        if (!mDualPane) {
-            mEditTitle.EditToolbarText(getResources().getString(R.string.app_name));
-        }
-
         mFABHide.ExitHideFABDetail();
 
         super.onPause();
