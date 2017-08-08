@@ -5,6 +5,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,7 +22,7 @@ import android.widget.TextView;
  * Use the {@link EditFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class EditFragment extends Fragment {
+public class EditFragment extends Fragment implements TextWatcher {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -90,6 +92,18 @@ public class EditFragment extends Fragment {
         editTagThree = (EditText) rootView.findViewById(R.id.edit_edit_tag_three);
         editMessage = (EditText) rootView.findViewById(R.id.edit_edit_message);
 
+        editTitle.addTextChangedListener(this);
+        editTagOne.addTextChangedListener(this);
+        editTagTwo.addTextChangedListener(this);
+        editTagThree.addTextChangedListener(this);
+        editMessage.addTextChangedListener(this);
+
+        editTitle.setSelectAllOnFocus(true);
+        editTagOne.setSelectAllOnFocus(true);
+        editTagTwo.setSelectAllOnFocus(true);
+        editTagThree.setSelectAllOnFocus(true);
+        editMessage.setSelectAllOnFocus(true);
+
         mFABHide.EnterHideFABEdit();
 
         if (savedInstanceState != null) {
@@ -128,11 +142,39 @@ public class EditFragment extends Fragment {
         editTagTwo.setText(tagTwo);
         editTagThree.setText(tagThree);
         editMessage.setText(message);
-//        TODO change to tagOne with real data
-        if (!title.isEmpty()) {
+
+        if (!tagOne.isEmpty()) {
+
             mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_edit));
+
         } else {
+
             mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_add));
+        }
+
+        setHints();
+    }
+
+    private void setHints() {
+
+        if (editTitle.getText().length() == 0) {
+            editTitle.setHint(R.string.empty_title_edit);
+        }
+
+        if (editTagOne.getText().length() == 0) {
+            editTagOne.setHint(R.string.empty_tag_edit);
+        }
+
+        if (editTagTwo.getText().length() == 0) {
+            editTagTwo.setHint(R.string.empty_tag_edit);
+        }
+
+        if (editTagThree.getText().length() == 0) {
+            editTagThree.setHint(R.string.empty_tag_edit);
+        }
+
+        if (editMessage.getText().length() == 0) {
+            editMessage.setHint(R.string.empty_message_edit);
         }
     }
 
@@ -204,6 +246,105 @@ public class EditFragment extends Fragment {
             message = bundle.getString(MESSAGE_KEY);
 
             setEditText(title, tagOne, tagTwo, tagThree, message);
+        }
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        editTitle.setSelectAllOnFocus(true);
+        editTagOne.setSelectAllOnFocus(true);
+        editTagTwo.setSelectAllOnFocus(true);
+        editTagThree.setSelectAllOnFocus(true);
+        editMessage.setSelectAllOnFocus(true);
+
+        setHints();
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+        if (editTagOne.getText().toString().isEmpty()) {
+
+            editTagTwo.setEnabled(false);
+            editTagThree.setEnabled(false);
+
+        } else {
+
+            if (editTagOne.getText().toString().equals(getResources().getString(R.string.empty_tag_edit))) {
+
+                editTagTwo.setEnabled(false);
+
+            } else {
+
+                editTagTwo.setEnabled(true);
+                editTagThree.setEnabled(false);
+            }
+        }
+
+        if (editTagTwo.getText().toString().isEmpty()) {
+
+            editTagThree.setEnabled(false);
+
+        } else {
+
+            if (editTagTwo.getText().toString().equals(getResources().getString(R.string.empty_tag_edit))) {
+
+                editTagThree.setEnabled(false);
+
+            } else {
+
+                editTagThree.setEnabled(true);
+            }
+        }
+
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
+
+        if (editTitle.getText().toString().isEmpty()) {
+
+            editTitle.setText(getResources().getString(R.string.empty_title_edit));
+            editTitle.selectAll();
+        }
+
+        if (editTagOne.getText().toString().isEmpty()) {
+
+            editTagOne.setText(getResources().getString(R.string.empty_tag_edit));
+            editTagOne.selectAll();
+
+            if (!editTagTwo.getText().toString().isEmpty()) {
+
+                editTagOne.setText(editTagTwo.getText().toString());
+                editTagTwo.getText().clear();
+                editTagOne.selectAll();
+            }
+        }
+
+        if (editTagTwo.getText().toString().isEmpty()) {
+
+            editTagTwo.setText(getResources().getString(R.string.empty_tag_edit));
+            editTagTwo.selectAll();
+
+            if (!editTagThree.getText().toString().isEmpty()) {
+
+                editTagTwo.setText(editTagThree.getText().toString());
+                editTagThree.getText().clear();
+                editTagTwo.selectAll();
+            }
+        }
+
+        if (editTagThree.getText().toString().isEmpty()) {
+
+            editTagThree.setText(getResources().getString(R.string.empty_tag_edit));
+            editTagThree.selectAll();
+        }
+
+        if (editMessage.getText().toString().isEmpty()) {
+
+            editMessage.setText(getResources().getString(R.string.empty_message_edit));
+            editMessage.selectAll();
         }
     }
 
