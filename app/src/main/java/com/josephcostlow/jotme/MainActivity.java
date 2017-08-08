@@ -552,6 +552,16 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    @Override
+    public void HideSaveFABEdit() {
+        HideSaveFAB();
+    }
+
+    @Override
+    public void ShowSaveFABEdit() {
+        ShowSaveFAB();
+    }
+
     public void HideAllFABs() {
         HideCancelFAB();
         HideSaveFAB();

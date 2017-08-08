@@ -146,6 +146,7 @@ public class EditFragment extends Fragment implements TextWatcher {
         if (!tagOne.isEmpty()) {
 
             mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_edit));
+            mFABHide.HideSaveFABEdit();
 
         } else {
 
@@ -259,6 +260,7 @@ public class EditFragment extends Fragment implements TextWatcher {
         editMessage.setSelectAllOnFocus(true);
 
         setHints();
+        mFABHide.HideSaveFABEdit();
     }
 
     @Override
@@ -274,11 +276,13 @@ public class EditFragment extends Fragment implements TextWatcher {
             if (editTagOne.getText().toString().equals(getResources().getString(R.string.empty_tag_edit))) {
 
                 editTagTwo.setEnabled(false);
+                mFABHide.HideSaveFABEdit();
 
             } else {
 
                 editTagTwo.setEnabled(true);
                 editTagThree.setEnabled(false);
+                mFABHide.ShowSaveFABEdit();
             }
         }
 
@@ -298,6 +302,21 @@ public class EditFragment extends Fragment implements TextWatcher {
             }
         }
 
+        if (editTitle.getText().toString().equals(title)) {
+
+            if (editTagOne.getText().toString().equals(tagOne)) {
+
+                if (editTagTwo.getText().toString().equals(tagTwo)) {
+
+                    if (editTagThree.getText().toString().equals(tagThree)) {
+
+                        if (editMessage.getText().toString().equals(message)) {
+                            mFABHide.HideSaveFABEdit();
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -352,6 +371,10 @@ public class EditFragment extends Fragment implements TextWatcher {
         void EnterHideFABEdit();
 
         void ExitHideFABEdit();
+
+        void HideSaveFABEdit();
+
+        void ShowSaveFABEdit();
     }
 
     public interface OnToolbarTitleTextEdit {
