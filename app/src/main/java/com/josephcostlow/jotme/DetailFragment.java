@@ -23,32 +23,31 @@ import android.widget.TextView;
  * create an instance of this fragment.
  */
 public class DetailFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-    private static final String SHARED_PREFS_FILENAME = "com.josephcostlow.jotme.shared";
-    private static final String SHARED_PREFS_EMPTY_RECYCLER_KEY = "emptyRecycler";
+    private static final String TITLE_KEY = MainActivity.TITLE_KEY;
+    private static final String TAG_ONE_KEY = MainActivity.TAG_ONE_KEY;
+    private static final String TAG_TWO_KEY = MainActivity.TAG_TWO_KEY;
+    private static final String TAG_THREE_KEY = MainActivity.TAG_THREE_KEY;
+    private static final String MESSAGE_KEY = MainActivity.MESSAGE_KEY;
     TextView labelTitle, labelTags, labelMessage;
     TextView textTitle, textTagOne, textTagTwo, textTagThree, textMessage;
     ScrollView messageSV;
     CardView emptyRecyclerCard;
     TextView emptyView;
     SharedPreferences sharedPreferences;
-    Bundle bundle;
     OnToolbarTitleTextEdit mEditTitle;
     OnFABHide mFABHide;
+    // TODO: Rename parameter arguments, choose names that match
+    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+//    private static final String ARG_PARAM1 = "param1";
+//    private static final String ARG_PARAM2 = "param2";
+    private String SHARED_PREFS_FILENAME = MainActivity.SHARED_PREFS_FILENAME;
+    private String SHARED_PREFS_EMPTY_RECYCLER_KEY = MainActivity.SHARED_PREFS_EMPTY_RECYCLER_KEY;
     // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+//    private String mParam1;
+//    private String mParam2;
     private OnFragmentInteractionListener mListener;
-    private String TITLE_KEY = MainActivity.TITLE_KEY;
-    private String TAG_ONE_KEY = MainActivity.TAG_ONE_KEY;
-    private String TAG_TWO_KEY = MainActivity.TAG_TWO_KEY;
-    private String TAG_THREE_KEY = MainActivity.TAG_THREE_KEY;
-    private String MESSAGE_KEY = MainActivity.MESSAGE_KEY;
     private String title, tagOne, tagTwo, tagThree, message;
-    private boolean recyclerIsEmpty = ListFragment.recyclerIsEmpty;
+    private boolean recyclerIsEmpty;
     private boolean mDualPane;
 
     public DetailFragment() {
@@ -59,16 +58,20 @@ public class DetailFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
+     * @param
+     * @param
      * @return A new instance of fragment DetailFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static DetailFragment newInstance(String param1, String param2) {
+    public static DetailFragment newInstance(String title, String tagOne, String tagTwo, String tagThree, String message) {
         DetailFragment fragment = new DetailFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+
+        args.putString(TITLE_KEY, title);
+        args.putString(TAG_ONE_KEY, tagOne);
+        args.putString(TAG_TWO_KEY, tagTwo);
+        args.putString(TAG_THREE_KEY, tagThree);
+        args.putString(MESSAGE_KEY, message);
         fragment.setArguments(args);
         return fragment;
     }
@@ -77,8 +80,12 @@ public class DetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+
+            title = getArguments().getString(TITLE_KEY);
+            tagOne = getArguments().getString(TAG_ONE_KEY);
+            tagTwo = getArguments().getString(TAG_TWO_KEY);
+            tagThree = getArguments().getString(TAG_THREE_KEY);
+            message = getArguments().getString(MESSAGE_KEY);
         }
 
         setRetainInstance(true);
@@ -117,6 +124,8 @@ public class DetailFragment extends Fragment {
 
         if (!mDualPane) {
             mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_detail));
+        } else {
+            mEditTitle.EditToolbarText(getResources().getString(R.string.app_name));
         }
 
         mFABHide.EnterHideFABDetail();
@@ -142,9 +151,9 @@ public class DetailFragment extends Fragment {
             if (savedInstanceState.containsKey(MESSAGE_KEY)) {
                 message = savedInstanceState.getString(MESSAGE_KEY);
             }
-
-            setText(title, tagOne, tagTwo, tagThree, message);
         }
+
+        setText(title, tagOne, tagTwo, tagThree, message);
 
         // Inflate the layout for this fragment
         return rootView;
@@ -247,17 +256,6 @@ public class DetailFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        bundle = getArguments();
-
-        if (bundle != null) {
-            title = bundle.getString(TITLE_KEY);
-            tagOne = bundle.getString(TAG_ONE_KEY);
-            tagTwo = bundle.getString(TAG_TWO_KEY);
-            tagThree = bundle.getString(TAG_THREE_KEY);
-            message = bundle.getString(MESSAGE_KEY);
-
-            setText(title, tagOne, tagTwo, tagThree, message);
-        }
     }
 
     public String[] DataForEdit() {

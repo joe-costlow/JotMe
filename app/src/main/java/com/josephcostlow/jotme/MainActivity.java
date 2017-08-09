@@ -26,14 +26,8 @@ public class MainActivity extends AppCompatActivity implements
     public static final String INITIAL_DETAIL_FRAGMENT = "initialDetailFragment";
     public static final String INITIAL_EDIT_FRAGMENT = "initialEditFragment";
 
-//    constants for bundle from adapter
-    public static final String BUNDLE_TITLE = "title";
-    public static final String BUNDLE_TAG_ONE = "tagOne";
-    public static final String BUNDLE_TAG_TWO = "tagTwo";
-    public static final String BUNDLE_TAG_THREE = "tagThree";
-    public static final String BUNDLE_MESSAGE = "message";
-
 //    constants for saving state
+public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     public static final String TITLE_KEY = "title";
     public static final String TAG_ONE_KEY = "tagOne";
     public static final String TAG_TWO_KEY = "tagTwo";
@@ -45,10 +39,9 @@ public class MainActivity extends AppCompatActivity implements
     public static final String SHARED_PREFS_AUTO_SELECT_KEY = "autoSelector";
     public static final String SHARED_PREFS_CLICKED_POSITION_KEY = "clickedPosition";
     public static final String SHARED_PREFS_EMPTY_RECYCLER_KEY = "emptyRecycler";
+    public static final String SHARED_PREFS_SAVE_FAB_VISIBLE = "saveFABVisible";
 
 //    constants for auto-select and clicked positions for List Fragment and List Adapter
-    public static final String AUTO_SELECTOR_KEY = "autoSelector";
-    public static final String CLICKED_POSITION_KEY = "clickedPosition";
     public ListFragment listFragment;
     public DetailFragment detailFragment;
     public EditFragment editFragment;
@@ -60,8 +53,7 @@ public class MainActivity extends AppCompatActivity implements
     FloatingActionButton addFAB, cancelFAB, saveFAB, editFAB, deleteFAB;
     SharedPreferences sharedPreferences;
 
-//    TODO on home button press and return, no FABs
-//    TODO on orientation change in edit fragment (Dual Pane), new and add FABs show
+//    TODO create new mock Jot and save - shows on list, no autoselect, rotate - disappear from list, stays shown in details
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements
         deleteFAB.setOnClickListener(this);
 
         HideAllFABs();
+        ResetFABs();
 
         if (mDualPane) {
 
@@ -109,14 +102,13 @@ public class MainActivity extends AppCompatActivity implements
             } else {
 
                 listFragment = (ListFragment) getSupportFragmentManager()
-                        .findFragmentByTag(RETAINED_LIST_FRAGMENT);
+                        .getFragment(savedInstanceState, RETAINED_LIST_FRAGMENT);
 
                 detailFragment = (DetailFragment) getSupportFragmentManager()
-                        .findFragmentByTag(RETAINED_DETAIL_FRAGMENT);
+                        .getFragment(savedInstanceState, RETAINED_DETAIL_FRAGMENT);
 
                 editFragment = (EditFragment) getSupportFragmentManager()
-                        .findFragmentByTag(RETAINED_EDIT_FRAGMENT);
-
+                        .getFragment(savedInstanceState, RETAINED_EDIT_FRAGMENT);
             }
 
         } else {
@@ -151,13 +143,12 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onClick(View v) {
-
-        String title, tagOne, tagTwo, tagThree, message;
-        Bundle bundle;
+//        TODO real data will have unique post ID
+        String toolbarTitle, title, tagOne, tagTwo, tagThree, message;
 
         int fabID = v.getId();
         switch (fabID) {
-
+//    ADD FAB
             case R.id.fab_add:
                 listFragment = (ListFragment) getSupportFragmentManager()
                         .findFragmentByTag(INITIAL_LIST_FRAGMENT);
@@ -165,30 +156,20 @@ public class MainActivity extends AppCompatActivity implements
                 detailFragment = (DetailFragment) getSupportFragmentManager()
                         .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
 
-                mainToolbarTitle.setText(getResources().getText(R.string.main_toolbar_title_add));
+                toolbarTitle = getResources().getString(R.string.main_toolbar_title_add);
 
-                editFragment = new EditFragment();
-
-                bundle = new Bundle();
                 title = "";
                 tagOne = "";
                 tagTwo = "";
                 tagThree = "";
                 message = "";
-                bundle.putString(BUNDLE_TITLE, title);
-                bundle.putString(BUNDLE_TAG_ONE, tagOne);
-                bundle.putString(BUNDLE_TAG_TWO, tagTwo);
-                bundle.putString(BUNDLE_TAG_THREE, tagThree);
-                bundle.putString(BUNDLE_MESSAGE, message);
 
-                editFragment.setArguments(bundle);
+                editFragment = EditFragment.newInstance(toolbarTitle, title, tagOne, tagTwo, tagThree, message);
 
                 if (mDualPane) {
 
                     getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
-                            .remove(listFragment)
-                            .remove(detailFragment)
+                            .replace(R.id.frame_right, editFragment, INITIAL_EDIT_FRAGMENT)
                             .addToBackStack(null)
                             .commit();
 
@@ -201,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements
                 }
 
                 break;
-
+//    EDIT FAB
             case R.id.fab_edit:
                 listFragment = (ListFragment) getSupportFragmentManager()
                         .findFragmentByTag(INITIAL_LIST_FRAGMENT);
@@ -209,30 +190,23 @@ public class MainActivity extends AppCompatActivity implements
                 detailFragment = (DetailFragment) getSupportFragmentManager()
                         .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
 
-                String[] currentJot = detailFragment.DataForEdit();
+                toolbarTitle = getResources().getString(R.string.main_toolbar_title_edit);
+                mainToolbarTitle.setText(toolbarTitle);
 
+                String[] currentJot = detailFragment.DataForEdit();
+//        TODO real data will have unique post ID
                 title = currentJot[0];
                 tagOne = currentJot[1];
                 tagTwo = currentJot[2];
                 tagThree = currentJot[3];
                 message = currentJot[4];
 
-                bundle = new Bundle();
-                bundle.putString(TITLE_KEY, title);
-                bundle.putString(TAG_ONE_KEY, tagOne);
-                bundle.putString(TAG_TWO_KEY, tagTwo);
-                bundle.putString(TAG_THREE_KEY, tagThree);
-                bundle.putString(MESSAGE_KEY, message);
-
-                editFragment = new EditFragment();
-                editFragment.setArguments(bundle);
+                editFragment = EditFragment.newInstance(toolbarTitle, title, tagOne, tagTwo, tagThree, message);
 
                 if (mDualPane) {
 
                     getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.frame_full, editFragment, INITIAL_EDIT_FRAGMENT)
-                            .remove(listFragment)
-                            .remove(detailFragment)
+                            .replace(R.id.frame_right, editFragment, INITIAL_EDIT_FRAGMENT)
                             .addToBackStack(null)
                             .commit();
 
@@ -245,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements
                 }
 
                 break;
-
+//    CANCEL FAB
             case R.id.fab_cancel:
                 listFragment = (ListFragment) getSupportFragmentManager()
                         .findFragmentByTag(INITIAL_LIST_FRAGMENT);
@@ -259,9 +233,7 @@ public class MainActivity extends AppCompatActivity implements
                 if (mDualPane) {
 
                     getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.frame_left, listFragment, INITIAL_LIST_FRAGMENT)
                             .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
-                            .remove(editFragment)
                             .commit();
 
                 } else {
@@ -270,11 +242,35 @@ public class MainActivity extends AppCompatActivity implements
                 }
 
                 break;
-
+//    SAVE FAB
             case R.id.fab_save:
+//        TODO real data will have unique post ID - WORKS FOR ONLY NEW JOTS
+                String[] dataToSave = editFragment.dataToSave();
+
+                title = dataToSave[0];
+                tagOne = dataToSave[1];
+                tagTwo = dataToSave[2];
+                tagThree = dataToSave[3];
+                message = dataToSave[4];
+
+                listFragment.addJot(title, tagOne, tagTwo, tagThree, message);
+
+                if (mDualPane) {
+
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
+                            .commit();
+
+                } else {
+
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.frame_full, listFragment, INITIAL_LIST_FRAGMENT)
+                            .commit();
+                }
 
                 break;
-
+//    DELETE FAB
             case R.id.fab_delete:
 
                 break;
@@ -285,58 +281,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onRestart() {
 
-        listFragment = (ListFragment) getSupportFragmentManager()
-                .findFragmentByTag(INITIAL_LIST_FRAGMENT);
-
-        detailFragment = (DetailFragment) getSupportFragmentManager()
-                .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
-
-        editFragment = (EditFragment) getSupportFragmentManager()
-                .findFragmentByTag(INITIAL_EDIT_FRAGMENT);
-
-        boolean recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
-
-        HideAllFABs();
-
-        if (mDualPane) {
-
-            if (listFragment != null && listFragment.isVisible()) {
-
-                HideAllFABs();
-                ShowAddFAB();
-                ShowEditFAB();
-
-                if (recyclerIsEmpty) {
-                    HideAllFABs();
-                    ShowAddFAB();
-                }
-            }
-
-            if (editFragment != null && editFragment.isVisible()) {
-                HideAllFABs();
-                ShowSaveFAB();
-                ShowCancelFAB();
-            }
-
-        } else {
-
-            if (listFragment != null && listFragment.isVisible()) {
-                HideAllFABs();
-                ShowAddFAB();
-            }
-
-            if (detailFragment != null && detailFragment.isVisible()) {
-                HideAllFABs();
-                ShowEditFAB();
-                ShowDeleteFAB();
-            }
-
-            if (editFragment != null && editFragment.isVisible()) {
-                HideAllFABs();
-                ShowSaveFAB();
-                ShowCancelFAB();
-            }
-        }
+        ResetFABs();
 
         super.onRestart();
     }
@@ -416,14 +361,8 @@ public class MainActivity extends AppCompatActivity implements
             if (editFragment != null && editFragment.isVisible()) {
 
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.frame_left, listFragment, INITIAL_LIST_FRAGMENT)
                         .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
-                        .remove(editFragment)
                         .commit();
-            }
-
-            if (listFragment != null && listFragment.isVisible()) {
-                finish();
             }
 
             if (detailFragment != null && detailFragment.isVisible()) {
@@ -445,39 +384,20 @@ public class MainActivity extends AppCompatActivity implements
 
     public void RecyclerItemClick(String title, String tagOne, String tagTwo, String tagThree, String message) {
 
-        detailFragment = (DetailFragment) getSupportFragmentManager().findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+        detailFragment = DetailFragment.newInstance(title, tagOne, tagTwo, tagThree, message);
 
-        if (detailFragment != null && detailFragment.isVisible()) {
-
-            detailFragment.setText(title, tagOne, tagTwo, tagThree, message);
+        if (mDualPane) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
+                    .commit();
 
         } else {
-
-            detailFragment = new DetailFragment();
-
-            Bundle bundle = new Bundle();
-            bundle.putString(BUNDLE_TITLE, title);
-            bundle.putString(BUNDLE_TAG_ONE, tagOne);
-            bundle.putString(BUNDLE_TAG_TWO, tagTwo);
-            bundle.putString(BUNDLE_TAG_THREE, tagThree);
-            bundle.putString(BUNDLE_MESSAGE, message);
-
-            detailFragment.setArguments(bundle);
-
-            if (mDualPane) {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
-                        .commit();
-
-            } else {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.frame_full, detailFragment, INITIAL_DETAIL_FRAGMENT)
-                        .addToBackStack(null)
-                        .commit();
-            }
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.frame_full, detailFragment, INITIAL_DETAIL_FRAGMENT)
+                    .addToBackStack(null)
+                    .commit();
         }
     }
-
 
     @Override
     public void EditToolbarText(String title) {
@@ -543,13 +463,14 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void ExitHideFABEdit() {
-        HideAllFABs();
 
         boolean recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
 
         if (recyclerIsEmpty) {
             HideEditFAB();
         }
+
+        ResetFABs();
     }
 
     @Override
@@ -608,5 +529,57 @@ public class MainActivity extends AppCompatActivity implements
 
     public void HideSaveFAB() {
         saveFAB.setVisibility(View.GONE);
+    }
+
+    public void ResetFABs() {
+
+        listFragment = (ListFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_LIST_FRAGMENT);
+
+        detailFragment = (DetailFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+
+        editFragment = (EditFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_EDIT_FRAGMENT);
+
+        boolean recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
+
+        if (mDualPane) {
+
+            if (listFragment != null && listFragment.isVisible()) {
+
+                HideAllFABs();
+                ShowAddFAB();
+                ShowEditFAB();
+
+                if (recyclerIsEmpty) {
+                    HideAllFABs();
+                    ShowAddFAB();
+                }
+            }
+
+            if (editFragment != null && editFragment.isVisible()) {
+                HideAllFABs();
+                ShowCancelFAB();
+            }
+
+        } else {
+
+            if (listFragment != null && listFragment.isVisible()) {
+                HideAllFABs();
+                ShowAddFAB();
+            }
+
+            if (detailFragment != null && detailFragment.isVisible()) {
+                HideAllFABs();
+                ShowEditFAB();
+                ShowDeleteFAB();
+            }
+
+            if (editFragment != null && editFragment.isVisible()) {
+                HideAllFABs();
+                ShowCancelFAB();
+            }
+        }
     }
 }

@@ -1,15 +1,22 @@
 package com.josephcostlow.jotme;
 
 import android.content.Context;
-import android.os.Bundle;
+import android.content.SharedPreferences;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+
+import static com.josephcostlow.jotme.MainActivity.SHARED_PREFS_AUTO_SELECT_KEY;
+import static com.josephcostlow.jotme.MainActivity.SHARED_PREFS_CLICKED_POSITION_KEY;
+import static com.josephcostlow.jotme.MainActivity.SHARED_PREFS_FILENAME;
+
 
 /**
  * Created by Joseph Costlow on 29-Jul-17.
@@ -19,16 +26,11 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
     OnItemClickListener mListener;
     DetailFragment detailFragment;
+    SharedPreferences sharedPreferences;
     private ArrayList<Jot> jotsData;
     private Context context;
     private boolean mDualPane;
     private String INITIAL_DETAIL_FRAGMENT = MainActivity.INITIAL_DETAIL_FRAGMENT;
-    private String BUNDLE_TITLE = MainActivity.BUNDLE_TITLE;
-    private String BUNDLE_TAG_ONE = MainActivity.BUNDLE_TAG_ONE;
-    private String BUNDLE_TAG_TWO = MainActivity.BUNDLE_TAG_TWO;
-    private String BUNDLE_TAG_THREE = MainActivity.BUNDLE_TAG_THREE;
-    private String BUNDLE_MESSAGE = MainActivity.BUNDLE_MESSAGE;
-
     private boolean autoSelector;
     private int clickedPosition;
 
@@ -55,8 +57,9 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
         holder.tagTwo.setText(jotsData.get(position).getTagTwo());
         holder.tagThree.setText(jotsData.get(position).getTagThree());
 
-        autoSelector = ListFragment.autoSelector;
-        clickedPosition = ListFragment.clickedPosition;
+        sharedPreferences = context.getSharedPreferences(SHARED_PREFS_FILENAME, 0);
+        autoSelector = sharedPreferences.getBoolean(SHARED_PREFS_AUTO_SELECT_KEY, true);
+        clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, jotsData.size() - 1);
 
         if (mDualPane) {
 
@@ -66,17 +69,22 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
                     if (position == jotsData.size() - 1) {
 
-                        int auto = position;
-                        bundleBuild(auto);
+                        bundleBuild(position);
                     }
 
                 } else {
 
-                    if (clickedPosition == position) {
+                    Fragment fragment = ((MainActivity) context)
+                            .getSupportFragmentManager().findFragmentById(R.id.frame_right);
 
-                        int auto = position;
-                        bundleBuild(auto);
+                    if (fragment instanceof DetailFragment) {
+
+                        if (clickedPosition == position) {
+
+                            bundleBuild(position);
+                        }
                     }
+
                 }
             }
         }
@@ -85,24 +93,39 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
     private void bundleBuild(int position) {
 
         FragmentManager fragmentManager = ((MainActivity) context).getSupportFragmentManager();
-        detailFragment = new DetailFragment();
 
-        Bundle bundle = new Bundle();
         String title = jotsData.get(position).getTitle();
         String tagOne = jotsData.get(position).getTagOne();
         String tagTwo = jotsData.get(position).getTagTwo();
         String tagThree = jotsData.get(position).getTagThree();
         String message = jotsData.get(position).getMessage();
-        bundle.putString(BUNDLE_TITLE, title);
-        bundle.putString(BUNDLE_TAG_ONE, tagOne);
-        bundle.putString(BUNDLE_TAG_TWO, tagTwo);
-        bundle.putString(BUNDLE_TAG_THREE, tagThree);
-        bundle.putString(BUNDLE_MESSAGE, message);
-        detailFragment.setArguments(bundle);
+
+        detailFragment = DetailFragment.newInstance(title, tagOne, tagTwo, tagThree, message);
 
         fragmentManager.beginTransaction()
                 .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
                 .commit();
+    }
+
+    public void addJot(String title, String tagOne, String tagTwo, String tagThree, String message) {
+//    TODO This will change with real data
+        Jot jot = new Jot();
+        jot.setTitle(title);
+        jot.setTagOne(tagOne);
+        jot.setTagTwo(tagTwo);
+        jot.setTagThree(tagThree);
+        jot.setMessage(message);
+
+        jotsData.add(jot);
+
+        Toast.makeText(context, "DATA SAVED", Toast.LENGTH_SHORT).show();
+
+        sharedPreferences = context.getSharedPreferences(SHARED_PREFS_FILENAME, 0);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, getItemCount());
+        editor.apply();
+
+        notifyDataSetChanged();
     }
 
     @Override
