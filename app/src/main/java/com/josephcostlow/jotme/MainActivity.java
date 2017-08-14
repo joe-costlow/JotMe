@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
@@ -53,12 +54,25 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     FloatingActionButton addFAB, cancelFAB, saveFAB, editFAB, deleteFAB;
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         mainToolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(mainToolbar);
+
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         sharedPreferences = getSharedPreferences(SHARED_PREFS_FILENAME, 0);
 
@@ -382,30 +396,19 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
     public void RecyclerItemClick(String title, String tagOne, String tagTwo, String tagThree, String message) {
 
-        detailFragment = (DetailFragment) getSupportFragmentManager().findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+        detailFragment = DetailFragment.newInstance(title, tagOne, tagTwo, tagThree, message);
 
-        if (detailFragment != null && detailFragment.isVisible()) {
-
-            detailFragment.setText(title, tagOne, tagTwo, tagThree, message);
+        if (mDualPane) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
+                    .commit();
 
         } else {
-
-            detailFragment = DetailFragment.newInstance(title, tagOne, tagTwo, tagThree, message);
-
-            if (mDualPane) {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
-                        .commit();
-
-            } else {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.frame_full, detailFragment, INITIAL_DETAIL_FRAGMENT)
-                        .addToBackStack(null)
-                        .commit();
-            }
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.frame_full, detailFragment, INITIAL_DETAIL_FRAGMENT)
+                    .addToBackStack(null)
+                    .commit();
         }
-
-
     }
 
     @Override

@@ -82,7 +82,7 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
                             .getSupportFragmentManager().findFragmentById(R.id.frame_right);
 
                     if (fragment instanceof DetailFragment) {
-//                    TODO position keeps jumping up after swipe ie swipe 13, works good once, swipe again, jumps to 15
+
                         if (clickedPosition == position) {
 
                             bundleBuild(position);
