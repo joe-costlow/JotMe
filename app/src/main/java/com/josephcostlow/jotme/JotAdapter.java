@@ -15,7 +15,6 @@ import java.util.ArrayList;
 
 import static com.josephcostlow.jotme.MainActivity.SHARED_PREFS_AUTO_SELECT_KEY;
 import static com.josephcostlow.jotme.MainActivity.SHARED_PREFS_CLICKED_POSITION_KEY;
-import static com.josephcostlow.jotme.MainActivity.SHARED_PREFS_FILENAME;
 
 
 /**
@@ -24,20 +23,22 @@ import static com.josephcostlow.jotme.MainActivity.SHARED_PREFS_FILENAME;
 
 public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
+    private final SharedPreferences sharedPreferences = MainActivity.sharedPreferences;
     OnItemClickListener mListener;
     DetailFragment detailFragment;
-    SharedPreferences sharedPreferences;
+    ListFragment listFragment;
     private ArrayList<Jot> jotsData;
     private Context context;
     private boolean mDualPane;
     private String INITIAL_DETAIL_FRAGMENT = MainActivity.INITIAL_DETAIL_FRAGMENT;
     private boolean autoSelector;
-    private int clickedPosition;
+    private int clickedPosition = MainActivity.clickedPosition;
 
-    public JotAdapter(Context context, ArrayList<Jot> jotsData) {
+    public JotAdapter(Context context, ArrayList<Jot> jotsData, ListFragment listFragment) {
         this.jotsData = jotsData;
         this.context = context;
         mDualPane = context.getResources().getBoolean(R.bool.dual_pane);
+        this.listFragment = listFragment;
     }
 
     @Override
@@ -57,9 +58,12 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
         holder.tagTwo.setText(jotsData.get(position).getTagTwo());
         holder.tagThree.setText(jotsData.get(position).getTagThree());
 
-        sharedPreferences = context.getSharedPreferences(SHARED_PREFS_FILENAME, 0);
+        autoSelector = false;
+        clickedPosition = 0;
+
         autoSelector = sharedPreferences.getBoolean(SHARED_PREFS_AUTO_SELECT_KEY, true);
         clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, jotsData.size() - 1);
+
 
         if (mDualPane) {
 
@@ -78,13 +82,17 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
                             .getSupportFragmentManager().findFragmentById(R.id.frame_right);
 
                     if (fragment instanceof DetailFragment) {
-
+//                    TODO position keeps jumping up after swipe ie swipe 13, works good once, swipe again, jumps to 15
                         if (clickedPosition == position) {
 
                             bundleBuild(position);
                         }
-                    }
 
+                        if (clickedPosition > getItemCount() - 1) {
+
+                            bundleBuild(getItemCount() - 1);
+                        }
+                    }
                 }
             }
         }
@@ -92,13 +100,17 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
     private void bundleBuild(int position) {
 
-        FragmentManager fragmentManager = ((MainActivity) context).getSupportFragmentManager();
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, position);
+        editor.apply();
 
         String title = jotsData.get(position).getTitle();
         String tagOne = jotsData.get(position).getTagOne();
         String tagTwo = jotsData.get(position).getTagTwo();
         String tagThree = jotsData.get(position).getTagThree();
         String message = jotsData.get(position).getMessage();
+
+        FragmentManager fragmentManager = ((MainActivity) context).getSupportFragmentManager();
 
         detailFragment = DetailFragment.newInstance(title, tagOne, tagTwo, tagThree, message);
 
@@ -118,14 +130,52 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
         jotsData.add(jot);
 
-        Toast.makeText(context, "DATA SAVED", Toast.LENGTH_SHORT).show();
+        int position = getItemCount() - 1;
 
-        sharedPreferences = context.getSharedPreferences(SHARED_PREFS_FILENAME, 0);
+        mListener.publicOnClick(position);
+
+        Toast.makeText(context, "DATA SAVED : " + String.valueOf(getItemCount()), Toast.LENGTH_SHORT).show();
+
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, getItemCount());
+        editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, position);
+        editor.putBoolean(SHARED_PREFS_AUTO_SELECT_KEY, true);
         editor.apply();
+    }
 
-        notifyDataSetChanged();
+    public void editJot(String title, String tagOne, String tagTwo, String tagThree, String message) {
+
+        clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, jotsData.size() - 1);
+
+        jotsData.get(clickedPosition).setTitle(title);
+        jotsData.get(clickedPosition).setTagOne(tagOne);
+        jotsData.get(clickedPosition).setTagTwo(tagTwo);
+        jotsData.get(clickedPosition).setTagThree(tagThree);
+        jotsData.get(clickedPosition).setMessage(message);
+
+        Toast.makeText(context, "DATA UPDATED : " + String.valueOf(clickedPosition), Toast.LENGTH_SHORT).show();
+
+        bundleBuild(clickedPosition);
+    }
+
+    public void deleteJot(int id) {
+
+        clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, jotsData.size() - 1);
+
+        if (id < clickedPosition) {
+
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition - 1);
+            editor.putBoolean(SHARED_PREFS_AUTO_SELECT_KEY, false);
+            editor.apply();
+        }
+
+        Fragment testFragment = ((MainActivity) context).getSupportFragmentManager().findFragmentById(R.id.frame_right);
+
+        if (!(testFragment instanceof EditFragment)) {
+            jotsData.remove(id);
+        }
+
+        clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, jotsData.size() - 1);
     }
 
     @Override
@@ -137,6 +187,8 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
     public interface OnItemClickListener {
         void onClick(View view, int position);
+
+        void publicOnClick(int position);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -159,8 +211,21 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
             autoSelector = false;
 
+            Fragment testFragment = ((MainActivity) context).getSupportFragmentManager().findFragmentById(R.id.frame_right);
+
+            if (testFragment instanceof EditFragment && mDualPane) {
+
+                mListener = null;
+            }
+
             if (mListener != null) {
+
                 mListener.onClick(view, getAdapterPosition());
+
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean(SHARED_PREFS_AUTO_SELECT_KEY, autoSelector);
+                editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, getAdapterPosition());
+                editor.apply();
             }
         }
     }

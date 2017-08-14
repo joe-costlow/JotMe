@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,19 +30,20 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private final SharedPreferences sharedPreferences = MainActivity.sharedPreferences;
     ArrayList<Jot> jotsData;
     Context context;
     JotAdapter mAdapter;
-    SharedPreferences sharedPreferences;
     RecyclerView recyclerView;
     CardView emptyRecyclerCard;
     TextView emptyView;
     private boolean autoSelector;
-    private int clickedPosition;
+    private int clickedPosition = MainActivity.clickedPosition;
     private boolean recyclerIsEmpty;
     private OnItemClick mOnClickListener;
     private OnFABHide mFABHide;
     private OnToolbarTitleTextEdit mEditTitle;
+    private OnDataUpdate mDataUpdate;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -83,7 +85,6 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         }
 
         setRetainInstance(true);
-//        setRetainInstance(false);
     }
 
     @Override
@@ -122,37 +123,30 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         layoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(layoutManager);
 
-        mAdapter = new JotAdapter(context, jotsData);
+        mAdapter = new JotAdapter(context, jotsData, ListFragment.this);
         recyclerView.setAdapter(mAdapter);
-        mAdapter.setClickListener(this);
 
-        if (jotsData.isEmpty()) {
-            recyclerIsEmpty = true;
-            HideRecycler();
-        } else {
-            recyclerIsEmpty = false;
-            ShowRecycler();
+        addClickListener();
 
-            if (mDualPane) {
-
-                sharedPreferences = this.getActivity().getSharedPreferences(SHARED_PREFS_FILENAME, 0);
-                clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, mAdapter.getItemCount() - 1);
-
-                if (clickedPosition > mAdapter.getItemCount() - 1) {
-                    clickedPosition = mAdapter.getItemCount() - 1;
-                }
-
-                recyclerView.smoothScrollToPosition(clickedPosition);
-            }
-        }
+        UpdateUIList();
 
         mFABHide.EnterHideFABList();
 
-        sharedPreferences = this.getActivity().getSharedPreferences(SHARED_PREFS_FILENAME, 0);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition);
-        editor.putBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, recyclerIsEmpty);
-        editor.apply();
+//        TODO add a block to keep from deleting while editing
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                int id = viewHolder.getAdapterPosition();
+                deleteJot(id);
+            }
+        }) {
+
+        }.attachToRecyclerView(recyclerView);
 
         // Inflate the layout for this fragment
         return rootView;
@@ -192,6 +186,12 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + "must implement OnFABHide");  //TODO make string
         }
+
+        try {
+            mDataUpdate = (OnDataUpdate) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + "must implement OnDataUpdate");  //TODO make string
+        }
     }
 
     @Override
@@ -207,11 +207,13 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         autoSelector = false;
         clickedPosition = position;
 
-        sharedPreferences = this.getActivity().getSharedPreferences(SHARED_PREFS_FILENAME, 0);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean(SHARED_PREFS_AUTO_SELECT_KEY, autoSelector);
-        editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition);
-        editor.apply();
+        publicOnClick(clickedPosition);
+    }
+
+    @Override
+    public void publicOnClick(int position) {
+
+        recyclerView.smoothScrollToPosition(position);
 
         String title = jotsData.get(position).getTitle();
         String tagOne = jotsData.get(position).getTagOne();
@@ -221,12 +223,42 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         mOnClickListener.OnListItemClick(title, tagOne, tagTwo, tagThree, message);
     }
 
-    private void ShowRecycler() {
+    public void UpdateUIList() {
+
+        addClickListener();
+
+        if (jotsData.isEmpty()) {
+            recyclerIsEmpty = true;
+            HideRecycler();
+        } else {
+            recyclerIsEmpty = false;
+            ShowRecycler();
+
+            if (mDualPane) {
+
+                clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, mAdapter.getItemCount() - 1);
+
+                if (clickedPosition > mAdapter.getItemCount() - 1) {
+                    clickedPosition = mAdapter.getItemCount() - 1;
+                }
+
+                recyclerView.smoothScrollToPosition(clickedPosition);
+            }
+        }
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition);
+        editor.putBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, recyclerIsEmpty);
+        editor.apply();
+    }
+
+    public void ShowRecycler() {
         recyclerView.setVisibility(View.VISIBLE);
         emptyRecyclerCard.setVisibility(View.GONE);
     }
 
-    private void HideRecycler() {
+    public void HideRecycler() {
+
         recyclerView.setVisibility(View.GONE);
         emptyRecyclerCard.setVisibility(View.VISIBLE);
         SetEmptyRecyclerText();
@@ -236,25 +268,48 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         emptyView.setText(R.string.empty_recycler_text);
     }
 
+    public void addJot(String title, String tagOne, String tagTwo, String tagThree, String message) {
+        mAdapter.addJot(title, tagOne, tagTwo, tagThree, message);
+
+        mAdapter.notifyItemInserted(mAdapter.getItemCount() - 1);
+
+        mDataUpdate.UIUpdate();
+
+        addClickListener();
+    }
+
+    public void editJot(String title, String tagOne, String tagTwo, String tagThree, String message) {
+        mAdapter.editJot(title, tagOne, tagTwo, tagThree, message);
+
+        mAdapter.notifyDataSetChanged();
+
+        mDataUpdate.UIUpdate();
+
+        addClickListener();
+    }
+
+    public void deleteJot(int position) {
+        mAdapter.deleteJot(position);
+
+        mAdapter.notifyDataSetChanged();
+
+        mDataUpdate.UIUpdate();
+
+        addClickListener();
+    }
+
+    public void addClickListener() {
+        mAdapter.setClickListener(this);
+    }
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
     }
 
-    public void addJot(String title, String tagOne, String tagTwo, String tagThree, String message) {
-        mAdapter.addJot(title, tagOne, tagTwo, tagThree, message);
-    }
-
     @Override
     public void onPause() {
         super.onPause();
-
-        if (mDualPane) {
-            sharedPreferences = this.getActivity().getSharedPreferences(SHARED_PREFS_FILENAME, 0);
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition);
-            editor.apply();
-        }
 
         mFABHide.ExitHideFABList();
     }
@@ -270,6 +325,10 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
 
     public interface OnToolbarTitleTextEdit {
         void EditToolbarText(String Title);
+    }
+
+    public interface OnDataUpdate {
+        void UIUpdate();
     }
 
     /**

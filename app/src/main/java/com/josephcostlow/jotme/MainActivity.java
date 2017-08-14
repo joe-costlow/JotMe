@@ -12,7 +12,7 @@ public class MainActivity extends AppCompatActivity implements
         View.OnClickListener,
         ListFragment.OnToolbarTitleTextEdit,
         ListFragment.OnItemClick,
-        ListFragment.OnFABHide,
+        ListFragment.OnFABHide, ListFragment.OnDataUpdate,
         DetailFragment.OnToolbarTitleTextEdit,
         DetailFragment.OnFABHide,
         EditFragment.OnToolbarTitleTextEdit,
@@ -40,20 +40,17 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     public static final String SHARED_PREFS_CLICKED_POSITION_KEY = "clickedPosition";
     public static final String SHARED_PREFS_EMPTY_RECYCLER_KEY = "emptyRecycler";
     public static final String SHARED_PREFS_SAVE_FAB_VISIBLE = "saveFABVisible";
-
+    public static SharedPreferences sharedPreferences;
+    public static int clickedPosition;
 //    constants for auto-select and clicked positions for List Fragment and List Adapter
     public ListFragment listFragment;
     public DetailFragment detailFragment;
     public EditFragment editFragment;
-
     //    misc
     Toolbar mainToolbar;
     TextView mainToolbarTitle;
     boolean mDualPane;
     FloatingActionButton addFAB, cancelFAB, saveFAB, editFAB, deleteFAB;
-    SharedPreferences sharedPreferences;
-
-//    TODO create new mock Jot and save - shows on list, no autoselect, rotate - disappear from list, stays shown in details
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,15 +143,19 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 //        TODO real data will have unique post ID
         String toolbarTitle, title, tagOne, tagTwo, tagThree, message;
 
+        listFragment = (ListFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_LIST_FRAGMENT);
+
+        detailFragment = (DetailFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+
+        editFragment = (EditFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_EDIT_FRAGMENT);
+
         int fabID = v.getId();
         switch (fabID) {
 //    ADD FAB
             case R.id.fab_add:
-                listFragment = (ListFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_LIST_FRAGMENT);
-
-                detailFragment = (DetailFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
 
                 toolbarTitle = getResources().getString(R.string.main_toolbar_title_add);
 
@@ -184,11 +185,6 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
                 break;
 //    EDIT FAB
             case R.id.fab_edit:
-                listFragment = (ListFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_LIST_FRAGMENT);
-
-                detailFragment = (DetailFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
 
                 toolbarTitle = getResources().getString(R.string.main_toolbar_title_edit);
                 mainToolbarTitle.setText(toolbarTitle);
@@ -221,14 +217,8 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
                 break;
 //    CANCEL FAB
             case R.id.fab_cancel:
-                listFragment = (ListFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_LIST_FRAGMENT);
 
-                detailFragment = (DetailFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
-
-                editFragment = (EditFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_EDIT_FRAGMENT);
+                listFragment.addClickListener();
 
                 if (mDualPane) {
 
@@ -253,7 +243,15 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
                 tagThree = dataToSave[3];
                 message = dataToSave[4];
 
-                listFragment.addJot(title, tagOne, tagTwo, tagThree, message);
+                if (mainToolbarTitle.getText().toString()
+                        .equals(getResources().getString(R.string.main_toolbar_title_edit))) {
+                    listFragment.editJot(title, tagOne, tagTwo, tagThree, message);
+                }
+
+                if (mainToolbarTitle.getText().toString()
+                        .equals(getResources().getString(R.string.main_toolbar_title_add))) {
+                    listFragment.addJot(title, tagOne, tagTwo, tagThree, message);
+                }
 
                 if (mDualPane) {
 
@@ -384,19 +382,30 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
     public void RecyclerItemClick(String title, String tagOne, String tagTwo, String tagThree, String message) {
 
-        detailFragment = DetailFragment.newInstance(title, tagOne, tagTwo, tagThree, message);
+        detailFragment = (DetailFragment) getSupportFragmentManager().findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
 
-        if (mDualPane) {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
-                    .commit();
+        if (detailFragment != null && detailFragment.isVisible()) {
+
+            detailFragment.setText(title, tagOne, tagTwo, tagThree, message);
 
         } else {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.frame_full, detailFragment, INITIAL_DETAIL_FRAGMENT)
-                    .addToBackStack(null)
-                    .commit();
+
+            detailFragment = DetailFragment.newInstance(title, tagOne, tagTwo, tagThree, message);
+
+            if (mDualPane) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
+                        .commit();
+
+            } else {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.frame_full, detailFragment, INITIAL_DETAIL_FRAGMENT)
+                        .addToBackStack(null)
+                        .commit();
+            }
         }
+
+
     }
 
     @Override
@@ -580,6 +589,24 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
                 HideAllFABs();
                 ShowCancelFAB();
             }
+        }
+    }
+
+    @Override
+    public void UIUpdate() {
+
+        listFragment = (ListFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_LIST_FRAGMENT);
+
+        detailFragment = (DetailFragment) getSupportFragmentManager()
+                .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+
+        if (listFragment != null && listFragment.isVisible()) {
+            listFragment.UpdateUIList();
+        }
+
+        if (detailFragment != null && detailFragment.isVisible()) {
+            detailFragment.UpdateUIDetail();
         }
     }
 }

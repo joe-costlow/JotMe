@@ -115,20 +115,7 @@ public class DetailFragment extends Fragment {
 
         ShowTextViews();
 
-        sharedPreferences = this.getActivity().getSharedPreferences(SHARED_PREFS_FILENAME, 0);
-        recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
-
-        if (recyclerIsEmpty) {
-            ShowEmptyView();
-        }
-
-        if (!mDualPane) {
-            mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_detail));
-        } else {
-            mEditTitle.EditToolbarText(getResources().getString(R.string.app_name));
-        }
-
-        mFABHide.EnterHideFABDetail();
+        UpdateUIDetail();
 
         if (savedInstanceState != null) {
 
@@ -173,6 +160,24 @@ public class DetailFragment extends Fragment {
         textTagTwo.setText(tagTwo);
         textTagThree.setText(tagThree);
         textMessage.setText(message);
+    }
+
+    public void UpdateUIDetail() {
+
+        sharedPreferences = this.getActivity().getSharedPreferences(SHARED_PREFS_FILENAME, 0);
+        recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
+
+        if (recyclerIsEmpty) {
+            ShowEmptyView();
+        }
+
+        if (!mDualPane) {
+            mEditTitle.EditToolbarText(getResources().getString(R.string.main_toolbar_title_detail));
+        } else {
+            mEditTitle.EditToolbarText(getResources().getString(R.string.app_name));
+        }
+
+        mFABHide.EnterHideFABDetail();
     }
 
     // TODO: Rename method, update argument and hook method into UI event
