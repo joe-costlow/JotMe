@@ -3,8 +3,8 @@ package com.josephcostlow.jotme;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +15,7 @@ import java.util.ArrayList;
 
 import static com.josephcostlow.jotme.MainActivity.SHARED_PREFS_AUTO_SELECT_KEY;
 import static com.josephcostlow.jotme.MainActivity.SHARED_PREFS_CLICKED_POSITION_KEY;
+import static com.josephcostlow.jotme.MainActivity.SHARED_PREFS_EMPTY_RECYCLER_KEY;
 
 
 /**
@@ -57,66 +58,18 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
         holder.tagOne.setText(jotsData.get(position).getTagOne());
         holder.tagTwo.setText(jotsData.get(position).getTagTwo());
         holder.tagThree.setText(jotsData.get(position).getTagThree());
-
-        autoSelector = false;
-        clickedPosition = 0;
-
-        autoSelector = sharedPreferences.getBoolean(SHARED_PREFS_AUTO_SELECT_KEY, true);
-        clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, jotsData.size() - 1);
-
-
-        if (mDualPane) {
-
-            if (!jotsData.isEmpty()) {
-
-                if (autoSelector) {
-
-                    if (position == jotsData.size() - 1) {
-
-                        bundleBuild(position);
-                    }
-
-                } else {
-
-                    Fragment fragment = ((MainActivity) context)
-                            .getSupportFragmentManager().findFragmentById(R.id.frame_right);
-
-                    if (fragment instanceof DetailFragment) {
-
-                        if (clickedPosition == position) {
-
-                            bundleBuild(position);
-                        }
-
-                        if (clickedPosition > getItemCount() - 1) {
-
-                            bundleBuild(getItemCount() - 1);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private void bundleBuild(int position) {
 
+        autoSelector = false;
+
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, position);
+        editor.putBoolean(SHARED_PREFS_AUTO_SELECT_KEY, autoSelector);
         editor.apply();
 
-        String title = jotsData.get(position).getTitle();
-        String tagOne = jotsData.get(position).getTagOne();
-        String tagTwo = jotsData.get(position).getTagTwo();
-        String tagThree = jotsData.get(position).getTagThree();
-        String message = jotsData.get(position).getMessage();
-
-        FragmentManager fragmentManager = ((MainActivity) context).getSupportFragmentManager();
-
-        detailFragment = DetailFragment.newInstance(title, tagOne, tagTwo, tagThree, message);
-
-        fragmentManager.beginTransaction()
-                .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
-                .commit();
+        mListener.publicOnClick(position);
     }
 
     public void addJot(String title, String tagOne, String tagTwo, String tagThree, String message) {
@@ -158,7 +111,7 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
     }
 
     public void deleteJot(int id) {
-
+//    TODO try to fix this - crashes when bottom or top item is swiped after being clicked
         clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, jotsData.size() - 1);
 
         if (id < clickedPosition) {
@@ -176,11 +129,24 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
         }
 
         clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, jotsData.size() - 1);
+
+        if (jotsData.isEmpty()) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
+            editor.apply();
+        }
     }
 
     @Override
     public int getItemCount() {
         return jotsData.size();
+    }
+
+    public void setFilter(ArrayList<Jot> newList) {
+
+        jotsData = new ArrayList<>();
+        jotsData.addAll(newList);
+        notifyDataSetChanged();
     }
 
     public void setClickListener(OnItemClickListener clickListener) {this.mListener = clickListener;}
@@ -224,8 +190,13 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
 
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putBoolean(SHARED_PREFS_AUTO_SELECT_KEY, autoSelector);
-                editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, getAdapterPosition());
+                editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, this.getAdapterPosition());
                 editor.apply();
+            }
+
+            if (mDualPane) {
+                int oldPosition = getLayoutPosition();
+                Log.v("VH_ONCLICK", "VH ON CLICK: " + String.valueOf(oldPosition));
             }
         }
     }

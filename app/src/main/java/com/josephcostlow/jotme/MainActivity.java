@@ -3,8 +3,12 @@ package com.josephcostlow.jotme;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -43,6 +47,7 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     public static final String SHARED_PREFS_SAVE_FAB_VISIBLE = "saveFABVisible";
     public static SharedPreferences sharedPreferences;
     public static int clickedPosition;
+    public static boolean mSearchMode;
 //    constants for auto-select and clicked positions for List Fragment and List Adapter
     public ListFragment listFragment;
     public DetailFragment detailFragment;
@@ -52,6 +57,88 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     TextView mainToolbarTitle;
     boolean mDualPane;
     FloatingActionButton addFAB, cancelFAB, saveFAB, editFAB, deleteFAB;
+    SearchView searchView;
+    private boolean recyclerIsEmpty;
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu_search, menu);
+
+        MenuItem menuItem = menu.findItem(R.id.menu_search);
+
+        searchView = (SearchView) menuItem.getActionView();
+        searchView.setQueryHint(getResources().getString(R.string.searchview_hint));
+
+        searchView.setVisibility(View.VISIBLE);
+        menuItem.setVisible(true);
+
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        menu.findItem(R.id.menu_search).setVisible(true);
+        searchView.setVisibility(View.VISIBLE);
+
+        if (mDualPane) {
+
+            Fragment testLeftFragment = getSupportFragmentManager().findFragmentById(R.id.frame_left);
+            Fragment testFragment = getSupportFragmentManager().findFragmentById(R.id.frame_right);
+
+            if (testLeftFragment instanceof ListFragment && testFragment instanceof EditFragment) {
+                menu.findItem(R.id.menu_search).setVisible(false);
+                searchView.setVisibility(View.GONE);
+            }
+
+        } else {
+
+            Fragment testFragment = getSupportFragmentManager().findFragmentById(R.id.frame_full);
+
+            if (testFragment instanceof DetailFragment || testFragment instanceof EditFragment) {
+                menu.findItem(R.id.menu_search).setVisible(false);
+                searchView.setVisibility(View.GONE);
+            }
+        }
+
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                SearchMode();
+
+                mSearchMode = true;
+
+                if (!mDualPane) {
+                    mainToolbarTitle.setVisibility(View.GONE);
+                }
+            }
+        });
+
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+
+                EnterHideFABList();
+
+                mSearchMode = false;
+
+                if (!mDualPane) {
+                    mainToolbarTitle.setVisibility(View.VISIBLE);
+                }
+
+                if (mDualPane) {
+                    UIUpdate();
+                }
+
+                return false;
+            }
+        });
+
+        return super.onPrepareOptionsMenu(menu);
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -75,6 +162,7 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         sharedPreferences = getSharedPreferences(SHARED_PREFS_FILENAME, 0);
+        recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
 
         mainToolbarTitle = (TextView) findViewById(R.id.main_toolbar_title);
 
@@ -383,7 +471,14 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
         } else {
 
-            super.onBackPressed();
+            if (listFragment != null && listFragment.isVisible()) {
+
+                finish();
+
+            } else {
+
+                super.onBackPressed();
+            }
         }
     }
 
@@ -413,6 +508,7 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
     @Override
     public void EditToolbarText(String title) {
+        mainToolbarTitle.setVisibility(View.VISIBLE);
         mainToolbarTitle.setText(title);
     }
 
@@ -420,13 +516,16 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     public void EnterHideFABList() {
         HideAllFABs();
 
-        ShowAddFAB();
+        if (!mSearchMode) {
 
-        if (mDualPane) {
-            ShowEditFAB();
+            ShowAddFAB();
+
+            if (mDualPane) {
+                ShowEditFAB();
+            }
         }
 
-        boolean recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
+        recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
 
         if (recyclerIsEmpty) {
             HideEditFAB();
@@ -439,21 +538,30 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     }
 
     @Override
+    public void SearchMode() {
+        HideAddFAB();
+        HideEditFAB();
+    }
+
+    @Override
     public void EnterHideFABDetail() {
         HideAllFABs();
 
-        ShowEditFAB();
+        if (!mSearchMode) {
 
-        if (mDualPane) {
+            ShowEditFAB();
 
-            ShowAddFAB();
+            if (mDualPane) {
 
-        } else {
+                ShowAddFAB();
 
-            ShowDeleteFAB();
+            } else {
+
+                ShowDeleteFAB();
+            }
         }
 
-        boolean recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
+        recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
 
         if (recyclerIsEmpty) {
             HideEditFAB();
@@ -554,7 +662,7 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         editFragment = (EditFragment) getSupportFragmentManager()
                 .findFragmentByTag(INITIAL_EDIT_FRAGMENT);
 
-        boolean recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
+        recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
 
         if (mDualPane) {
 

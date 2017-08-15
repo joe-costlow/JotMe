@@ -8,8 +8,12 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -38,7 +42,7 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     CardView emptyRecyclerCard;
     TextView emptyView;
     private boolean autoSelector;
-    private int clickedPosition = MainActivity.clickedPosition;
+    private int clickedPosition;
     private boolean recyclerIsEmpty;
     private OnItemClick mOnClickListener;
     private OnFABHide mFABHide;
@@ -53,6 +57,8 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     private String SHARED_PREFS_AUTO_SELECT_KEY = MainActivity.SHARED_PREFS_AUTO_SELECT_KEY;
     private String SHARED_PREFS_CLICKED_POSITION_KEY = MainActivity.SHARED_PREFS_CLICKED_POSITION_KEY;
     private String SHARED_PREFS_EMPTY_RECYCLER_KEY = MainActivity.SHARED_PREFS_EMPTY_RECYCLER_KEY;
+    private ItemTouchHelper itemTouchHelper;
+    private boolean mSearchMode = MainActivity.mSearchMode;
 
     public ListFragment() {
         // Required empty public constructor
@@ -85,6 +91,99 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         }
 
         setRetainInstance(true);
+
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+
+        MenuItem menuItem = menu.findItem(R.id.menu_search);
+        SearchView searchView = (SearchView) menuItem.getActionView();
+
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                itemTouchHelper.attachToRecyclerView(null);
+
+                mSearchMode = true;
+            }
+        });
+
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+
+                attachItemTouchHelper();
+
+                mFABHide.EnterHideFABList();
+
+                mSearchMode = false;
+
+                return false;
+            }
+        });
+
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+
+        MenuItem menuItem = menu.findItem(R.id.menu_search);
+        final SearchView searchView = (SearchView) menuItem.getActionView();
+
+        final ArrayList<Jot> originalJotList = jotsData;
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+
+                ArrayList<Jot> newList = new ArrayList<>();
+
+                for (Jot jot : originalJotList) {
+
+                    String searchTagOne = jot.getTagOne();
+                    String searchTagTwo = jot.getTagTwo();
+                    String searchTagThree = jot.getTagThree();
+
+                    if (searchTagOne.contains(newText)
+                            || searchTagTwo.contains(newText)
+                            || searchTagThree.contains(newText)) {
+                        newList.add(jot);
+                    }
+                }
+
+                if (newText.isEmpty()) {
+
+                    jotsData = originalJotList;
+                    mAdapter = new JotAdapter(context, originalJotList, ListFragment.this);
+                    recyclerView.setAdapter(mAdapter);
+
+                } else {
+
+                    jotsData = newList;
+                    mAdapter = new JotAdapter(context, jotsData, ListFragment.this);
+                    recyclerView.setAdapter(mAdapter);
+
+                    mAdapter.setFilter(jotsData);
+                }
+
+                UpdateUIList();
+
+                mFABHide.SearchMode();
+
+                return true;
+            }
+        });
+
+        super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -102,21 +201,7 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
 
         mEditTitle.EditToolbarText(getResources().getString(R.string.app_name));
 
-//        start of mock data collection     TODO collect real data
-        jotsData = new ArrayList<>();
-
-        for (int i = 1; i <= 20; i++) {
-
-            Jot jot = new Jot();
-            jot.setTitle("Title " + i);
-            jot.setTagOne("Tag One");
-            jot.setTagTwo("Tag Two");
-            jot.setTagThree("Tag Three");
-            jot.setMessage("This is a sample message " + i);
-
-            jotsData.add(jot);
-        }
-//        end of mock data collection
+        populateJotList();
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setReverseLayout(true);
@@ -126,29 +211,10 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         mAdapter = new JotAdapter(context, jotsData, ListFragment.this);
         recyclerView.setAdapter(mAdapter);
 
-        addClickListener();
-
         UpdateUIList();
 
-        mFABHide.EnterHideFABList();
+        attachItemTouchHelper();
 
-//        TODO add a block to keep from deleting while editing
-        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-            @Override
-            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                int id = viewHolder.getAdapterPosition();
-                deleteJot(id);
-            }
-        }) {
-
-        }.attachToRecyclerView(recyclerView);
-
-        // Inflate the layout for this fragment
         return rootView;
     }
 
@@ -213,8 +279,6 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     @Override
     public void publicOnClick(int position) {
 
-        recyclerView.smoothScrollToPosition(position);
-
         String title = jotsData.get(position).getTitle();
         String tagOne = jotsData.get(position).getTagOne();
         String tagTwo = jotsData.get(position).getTagTwo();
@@ -226,6 +290,10 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     public void UpdateUIList() {
 
         addClickListener();
+
+        mFABHide.EnterHideFABList();
+
+        recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
 
         if (jotsData.isEmpty()) {
             recyclerIsEmpty = true;
@@ -242,7 +310,13 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
                     clickedPosition = mAdapter.getItemCount() - 1;
                 }
 
-                recyclerView.smoothScrollToPosition(clickedPosition);
+                try {
+                    recyclerView.smoothScrollToPosition(clickedPosition);
+                } catch (Exception e) {
+                    clickedPosition = mAdapter.getItemCount() - 1;
+                }
+
+                publicOnClick(clickedPosition);
             }
         }
 
@@ -250,6 +324,44 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition);
         editor.putBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, recyclerIsEmpty);
         editor.apply();
+    }
+
+    public void populateJotList() {
+
+//        start of mock data collection     TODO collect real data
+        jotsData = new ArrayList<>();
+
+        for (int i = 1; i <= 5; i++) {
+
+            Jot jot = new Jot();
+            jot.setTitle("Title " + i);
+            jot.setTagOne("Tag One");
+            jot.setTagTwo("Tag Two");
+            jot.setTagThree("Tag Three");
+            jot.setMessage("This is a sample message " + i);
+
+            jotsData.add(jot);
+        }
+//        end of mock data collection
+    }
+
+    public void attachItemTouchHelper() {
+
+        ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                int id = viewHolder.getAdapterPosition();
+                deleteJot(id);
+            }
+        };
+
+        itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
     }
 
     public void ShowRecycler() {
@@ -321,6 +433,8 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     public interface OnFABHide {
         void EnterHideFABList();
         void ExitHideFABList();
+
+        void SearchMode();
     }
 
     public interface OnToolbarTitleTextEdit {

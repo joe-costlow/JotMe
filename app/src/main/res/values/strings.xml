@@ -20,6 +20,10 @@
     <string name="empty_tag_edit">No Tag</string>
     <string name="empty_message_edit">No Message</string>
 
+    <!-- Search view texts -->
+    <string name="searchview_hint">Search Tags</string>
+    <string name="searchview_title">Search</string>
+
     <!-- Sample texts -->
     <string name="sample_message">This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text.</string>
     <string name="sample_title">This is a sample title</string>

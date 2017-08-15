@@ -113,8 +113,6 @@ public class DetailFragment extends Fragment {
         emptyRecyclerCard = (CardView) rootView.findViewById(R.id.empty_recycler_detail_card);
         emptyView = (TextView) rootView.findViewById(R.id.empty_recycler_detail_textview);
 
-        ShowTextViews();
-
         UpdateUIDetail();
 
         if (savedInstanceState != null) {
@@ -167,8 +165,10 @@ public class DetailFragment extends Fragment {
         sharedPreferences = this.getActivity().getSharedPreferences(SHARED_PREFS_FILENAME, 0);
         recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
 
-        if (recyclerIsEmpty) {
+        if (recyclerIsEmpty || tagOne == null) {
             ShowEmptyView();
+        } else {
+            ShowTextViews();
         }
 
         if (!mDualPane) {
