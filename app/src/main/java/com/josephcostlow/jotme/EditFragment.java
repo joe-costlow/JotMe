@@ -93,6 +93,7 @@ public class EditFragment extends Fragment implements TextWatcher {
     public void onPrepareOptionsMenu(Menu menu) {
 
         menu.findItem(R.id.menu_search).setVisible(false);
+        menu.findItem(R.id.menu_signout).setVisible(false);
 
         super.onPrepareOptionsMenu(menu);
     }

@@ -12,12 +12,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements
         View.OnClickListener,
         ListFragment.OnToolbarTitleTextEdit,
         ListFragment.OnItemClick,
-        ListFragment.OnFABHide, ListFragment.OnDataUpdate,
+        ListFragment.OnFABHide,
+        ListFragment.OnDataUpdate,
         DetailFragment.OnToolbarTitleTextEdit,
         DetailFragment.OnFABHide,
         EditFragment.OnToolbarTitleTextEdit,
@@ -48,31 +50,40 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     public static SharedPreferences sharedPreferences;
     public static int clickedPosition;
     public static boolean mSearchMode;
+
 //    constants for auto-select and clicked positions for List Fragment and List Adapter
     public ListFragment listFragment;
     public DetailFragment detailFragment;
     public EditFragment editFragment;
+
     //    misc
     Toolbar mainToolbar;
     TextView mainToolbarTitle;
     boolean mDualPane;
     FloatingActionButton addFAB, cancelFAB, saveFAB, editFAB, deleteFAB;
     SearchView searchView;
+    MenuItem menuSearch;
+    MenuItem menuSignOut;
     private boolean recyclerIsEmpty;
+
+//    TODO swipe empty >> sign out >> rotate >> selects adapter position 0
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
         MenuInflater menuInflater = getMenuInflater();
-        menuInflater.inflate(R.menu.menu_search, menu);
+        menuInflater.inflate(R.menu.menu, menu);
 
-        MenuItem menuItem = menu.findItem(R.id.menu_search);
+        menuSearch = menu.findItem(R.id.menu_search);
+        menuSignOut = menu.findItem(R.id.menu_signout);
 
-        searchView = (SearchView) menuItem.getActionView();
+        searchView = (SearchView) menuSearch.getActionView();
         searchView.setQueryHint(getResources().getString(R.string.searchview_hint));
 
         searchView.setVisibility(View.VISIBLE);
-        menuItem.setVisible(true);
+        menuSearch.setVisible(true);
+
+        menuSignOut.setVisible(true);
 
         return true;
     }
@@ -82,6 +93,8 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
         menu.findItem(R.id.menu_search).setVisible(true);
         searchView.setVisibility(View.VISIBLE);
+
+        menuSignOut.setVisible(true);
 
         if (mDualPane) {
 
@@ -107,6 +120,8 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
             @Override
             public void onClick(View v) {
 
+                menuSignOut.setVisible(false);
+
                 SearchMode();
 
                 mSearchMode = true;
@@ -121,6 +136,8 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
             @Override
             public boolean onClose() {
 
+                menuSignOut.setVisible(true);
+
                 EnterHideFABList();
 
                 mSearchMode = false;
@@ -130,6 +147,7 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
                 }
 
                 if (mDualPane) {
+
                     UIUpdate();
                 }
 
@@ -145,6 +163,39 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
         if (item.getItemId() == android.R.id.home) {
             onBackPressed();
+        }
+
+        if (item.getItemId() == R.id.menu_signout) {
+//            resets list to mock data - next two lines
+            listFragment.populateJotList();
+            listFragment.setupAdapter();
+
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.clear();
+            editor.apply();
+
+            if (!mDualPane) {
+
+                listFragment = (ListFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_LIST_FRAGMENT);
+
+                detailFragment = (DetailFragment) getSupportFragmentManager()
+                        .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
+
+                if (detailFragment != null && detailFragment.isVisible()) {
+
+                    if (listFragment != null) {
+
+                        getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.frame_full, listFragment, INITIAL_LIST_FRAGMENT)
+                                .commit();
+                    }
+                }
+            }
+
+            UIUpdate();
+
+            Toast.makeText(getApplicationContext(), "Sign Out", Toast.LENGTH_SHORT).show();
         }
 
         return super.onOptionsItemSelected(item);

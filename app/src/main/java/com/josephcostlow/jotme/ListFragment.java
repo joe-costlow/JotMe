@@ -101,30 +101,6 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         MenuItem menuItem = menu.findItem(R.id.menu_search);
         SearchView searchView = (SearchView) menuItem.getActionView();
 
-        searchView.setOnSearchClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                itemTouchHelper.attachToRecyclerView(null);
-
-                mSearchMode = true;
-            }
-        });
-
-        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
-            @Override
-            public boolean onClose() {
-
-                attachItemTouchHelper();
-
-                mFABHide.EnterHideFABList();
-
-                mSearchMode = false;
-
-                return false;
-            }
-        });
-
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -208,8 +184,7 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         layoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(layoutManager);
 
-        mAdapter = new JotAdapter(context, jotsData, ListFragment.this);
-        recyclerView.setAdapter(mAdapter);
+        setupAdapter();
 
         UpdateUIList();
 
@@ -296,9 +271,12 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
 
         if (jotsData.isEmpty()) {
+
             recyclerIsEmpty = true;
             HideRecycler();
+
         } else {
+
             recyclerIsEmpty = false;
             ShowRecycler();
 
@@ -345,6 +323,12 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
 //        end of mock data collection
     }
 
+    public void setupAdapter() {
+
+        mAdapter = new JotAdapter(context, jotsData, ListFragment.this);
+        recyclerView.setAdapter(mAdapter);
+    }
+
     public void attachItemTouchHelper() {
 
         ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
@@ -386,8 +370,6 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         mAdapter.notifyItemInserted(mAdapter.getItemCount() - 1);
 
         mDataUpdate.UIUpdate();
-
-        addClickListener();
     }
 
     public void editJot(String title, String tagOne, String tagTwo, String tagThree, String message) {
@@ -396,8 +378,6 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         mAdapter.notifyDataSetChanged();
 
         mDataUpdate.UIUpdate();
-
-        addClickListener();
     }
 
     public void deleteJot(int position) {
@@ -406,8 +386,6 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         mAdapter.notifyDataSetChanged();
 
         mDataUpdate.UIUpdate();
-
-        addClickListener();
     }
 
     public void addClickListener() {
