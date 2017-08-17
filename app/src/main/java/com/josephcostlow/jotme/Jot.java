@@ -9,6 +9,7 @@ public class Jot {
 //    TODO possibly add unique push id to constructor
 
     private String title, tagOne, tagTwo, tagThree, message;
+    private int uniqueID;
 
     public Jot() {}
 
@@ -25,6 +26,16 @@ public class Jot {
         this.tagTwo = tagTwo;
         this.tagThree = tagThree;
         this.message = message;
+    }
+
+    public Jot(String title, String tagOne, String tagTwo, String tagThree, String message, int uniqueID) {
+        this.title = title;
+        this.tagOne = tagOne;
+        this.tagTwo = tagTwo;
+        this.tagThree = tagThree;
+        this.message = message;
+        this.uniqueID = uniqueID;
+
     }
 
     public String getTitle() {
@@ -65,5 +76,13 @@ public class Jot {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public int getUniqueID() {
+        return uniqueID;
+    }
+
+    public void setUniqueID(int uniqueID) {
+        this.uniqueID = uniqueID;
     }
 }

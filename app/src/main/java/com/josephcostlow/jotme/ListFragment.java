@@ -147,7 +147,6 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
                     jotsData = newList;
                     mAdapter = new JotAdapter(context, jotsData, ListFragment.this);
                     recyclerView.setAdapter(mAdapter);
-
                     mAdapter.setFilter(jotsData);
                 }
 
@@ -254,6 +253,11 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     @Override
     public void publicOnClick(int position) {
 
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(SHARED_PREFS_AUTO_SELECT_KEY, autoSelector);
+        editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, position);
+        editor.apply();
+
         String title = jotsData.get(position).getTitle();
         String tagOne = jotsData.get(position).getTagOne();
         String tagTwo = jotsData.get(position).getTagTwo();
@@ -317,6 +321,7 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
             jot.setTagTwo("Tag Two");
             jot.setTagThree("Tag Three");
             jot.setMessage("This is a sample message " + i);
+            jot.setUniqueID(i);
 
             jotsData.add(jot);
         }

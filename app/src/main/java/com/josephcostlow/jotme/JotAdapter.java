@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,6 +57,21 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
         holder.tagOne.setText(jotsData.get(position).getTagOne());
         holder.tagTwo.setText(jotsData.get(position).getTagTwo());
         holder.tagThree.setText(jotsData.get(position).getTagThree());
+
+        if (jotsData.get(position).getTagOne()
+                .equals(context.getResources().getString(R.string.empty_tag_edit))) {
+            holder.tagOne.setVisibility(View.GONE);
+        }
+
+        if (jotsData.get(position).getTagTwo()
+                .equals(context.getResources().getString(R.string.empty_tag_edit))) {
+            holder.tagTwo.setVisibility(View.GONE);
+        }
+
+        if (jotsData.get(position).getTagThree()
+                .equals(context.getResources().getString(R.string.empty_tag_edit))) {
+            holder.tagThree.setVisibility(View.GONE);
+        }
     }
 
     private void bundleBuild(int position) {
@@ -187,16 +201,6 @@ public class JotAdapter extends RecyclerView.Adapter<JotAdapter.ViewHolder> {
             if (mListener != null) {
 
                 mListener.onClick(view, getAdapterPosition());
-
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putBoolean(SHARED_PREFS_AUTO_SELECT_KEY, autoSelector);
-                editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, this.getAdapterPosition());
-                editor.apply();
-            }
-
-            if (mDualPane) {
-                int oldPosition = getLayoutPosition();
-                Log.v("VH_ONCLICK", "VH ON CLICK: " + String.valueOf(oldPosition));
             }
         }
     }
