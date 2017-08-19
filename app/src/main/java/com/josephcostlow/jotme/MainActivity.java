@@ -66,8 +66,6 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     MenuItem menuSignOut;
     private boolean recyclerIsEmpty;
 
-//    TODO swipe empty >> sign out >> rotate >> selects adapter position 0
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 

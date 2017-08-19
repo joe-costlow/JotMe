@@ -41,6 +41,7 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     RecyclerView recyclerView;
     CardView emptyRecyclerCard;
     TextView emptyView;
+    int emptyClickedPosition = 0;
     private boolean autoSelector;
     private int clickedPosition;
     private boolean recyclerIsEmpty;
@@ -136,21 +137,46 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
                     }
                 }
 
-                if (newText.isEmpty()) {
+                clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, mAdapter.getItemCount() - 1);
 
-                    jotsData = originalJotList;
-                    mAdapter = new JotAdapter(context, originalJotList, ListFragment.this);
-                    recyclerView.setAdapter(mAdapter);
+                int position = -1;
 
-                } else {
+                for (Jot filteredJot : originalJotList) {
+
+                    position++;
+
+                    if (!jotsData.isEmpty()) {
+
+                        if (filteredJot.getUniqueID() == jotsData.get(clickedPosition).getUniqueID()) {
+
+                            emptyClickedPosition = position;
+                        }
+                    }
+                }
+
+                if (!newText.isEmpty()) {
 
                     jotsData = newList;
                     mAdapter = new JotAdapter(context, jotsData, ListFragment.this);
                     recyclerView.setAdapter(mAdapter);
                     mAdapter.setFilter(jotsData);
+
+                    if (!jotsData.isEmpty()) {
+                        publicOnClick(mAdapter.getItemCount() - 1);
+                    }
+
+                } else {
+
+                    jotsData = originalJotList;
+                    mAdapter = new JotAdapter(context, originalJotList, ListFragment.this);
+                    recyclerView.setAdapter(mAdapter);
+
+                    if (!jotsData.isEmpty()) {
+                        publicOnClick(emptyClickedPosition);
+                    }
                 }
 
-                UpdateUIList();
+                mDataUpdate.UIUpdate();
 
                 mFABHide.SearchMode();
 
@@ -298,7 +324,9 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
                     clickedPosition = mAdapter.getItemCount() - 1;
                 }
 
-                publicOnClick(clickedPosition);
+                if (!jotsData.isEmpty()) {
+                    publicOnClick(clickedPosition);
+                }
             }
         }
 
