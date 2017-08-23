@@ -6,19 +6,9 @@ package com.josephcostlow.jotme;
 
 public class Jot {
 
-//    TODO possibly add unique push id to constructor
-
-    private String title, tagOne, tagTwo, tagThree, message;
-    private int uniqueID;
+    private String title, tagOne, tagTwo, tagThree, message, uniqueID;
 
     public Jot() {}
-
-    public Jot(String title, String tagOne, String tagTwo, String tagThree) {
-        this.title = title;
-        this.tagOne = tagOne;
-        this.tagTwo = tagTwo;
-        this.tagThree = tagThree;
-    }
 
     public Jot(String title, String tagOne, String tagTwo, String tagThree, String message) {
         this.title = title;
@@ -28,14 +18,13 @@ public class Jot {
         this.message = message;
     }
 
-    public Jot(String title, String tagOne, String tagTwo, String tagThree, String message, int uniqueID) {
+    public Jot(String title, String tagOne, String tagTwo, String tagThree, String message, String uniqueID) {
         this.title = title;
         this.tagOne = tagOne;
         this.tagTwo = tagTwo;
         this.tagThree = tagThree;
         this.message = message;
         this.uniqueID = uniqueID;
-
     }
 
     public String getTitle() {
@@ -78,11 +67,11 @@ public class Jot {
         this.message = message;
     }
 
-    public int getUniqueID() {
+    public String getUniqueID() {
         return uniqueID;
     }
 
-    public void setUniqueID(int uniqueID) {
+    public void setUniqueID(String uniqueID) {
         this.uniqueID = uniqueID;
     }
 }

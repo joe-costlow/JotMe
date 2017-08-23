@@ -1,7 +1,9 @@
 package com.josephcostlow.jotme;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -13,6 +15,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.firebase.ui.auth.AuthUI;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity implements
         View.OnClickListener,
@@ -47,15 +53,14 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     public static final String SHARED_PREFS_CLICKED_POSITION_KEY = "clickedPosition";
     public static final String SHARED_PREFS_EMPTY_RECYCLER_KEY = "emptyRecycler";
     public static final String SHARED_PREFS_SAVE_FAB_VISIBLE = "saveFABVisible";
+    public static final int RC_SIGN_IN = 1;
     public static SharedPreferences sharedPreferences;
     public static int clickedPosition;
     public static boolean mSearchMode;
-
 //    constants for auto-select and clicked positions for List Fragment and List Adapter
     public ListFragment listFragment;
     public DetailFragment detailFragment;
     public EditFragment editFragment;
-
     //    misc
     Toolbar mainToolbar;
     TextView mainToolbarTitle;
@@ -64,7 +69,10 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     SearchView searchView;
     MenuItem menuSearch;
     MenuItem menuSignOut;
+    FirebaseAuth mFirebaseAuth;
     private boolean recyclerIsEmpty;
+    private boolean emptyInstance;
+    private FirebaseAuth.AuthStateListener mAuthStateListener;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -164,43 +172,22 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         }
 
         if (item.getItemId() == R.id.menu_signout) {
-//            resets list to mock data - next two lines
-            listFragment.populateJotList();
-            listFragment.setupAdapter();
 
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.clear();
             editor.apply();
 
-            if (!mDualPane) {
-
-                listFragment = (ListFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_LIST_FRAGMENT);
-
-                detailFragment = (DetailFragment) getSupportFragmentManager()
-                        .findFragmentByTag(INITIAL_DETAIL_FRAGMENT);
-
-                if (detailFragment != null && detailFragment.isVisible()) {
-
-                    if (listFragment != null) {
-
-                        getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.frame_full, listFragment, INITIAL_LIST_FRAGMENT)
-                                .commit();
-                    }
-                }
-            }
-
-            UIUpdate();
-
             Toast.makeText(getApplicationContext(), "Sign Out", Toast.LENGTH_SHORT).show();
+
+//            AuthUI.getInstance().signOut(this);
+            mFirebaseAuth.signOut();
         }
 
         return super.onOptionsItemSelected(item);
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {      //TODO changed to final
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -233,19 +220,12 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         deleteFAB.setOnClickListener(this);
 
         HideAllFABs();
-        ResetFABs();
 
         if (mDualPane) {
 
             if (savedInstanceState == null) {
 
-                listFragment = new ListFragment();
-                detailFragment = new DetailFragment();
-
-                getSupportFragmentManager().beginTransaction()
-                        .add(R.id.frame_left, listFragment, INITIAL_LIST_FRAGMENT)
-                        .add(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
-                        .commit();
+                emptyInstance = true;
 
             } else {
 
@@ -257,16 +237,15 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
                 editFragment = (EditFragment) getSupportFragmentManager()
                         .getFragment(savedInstanceState, RETAINED_EDIT_FRAGMENT);
+
+                emptyInstance = false;
             }
 
         } else {
 
             if (savedInstanceState == null) {
 
-                listFragment = new ListFragment();
-                getSupportFragmentManager().beginTransaction()
-                        .add(R.id.frame_full, listFragment, INITIAL_LIST_FRAGMENT)
-                        .commit();
+                emptyInstance = true;
 
             } else {
 
@@ -283,8 +262,75 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
                 if (savedInstanceState.containsKey(RETAINED_EDIT_FRAGMENT)) {
                     editFragment = (EditFragment) getSupportFragmentManager()
                             .findFragmentByTag(RETAINED_EDIT_FRAGMENT);
-                }
 
+                    emptyInstance = false;
+                }
+            }
+        }
+
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mAuthStateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+
+                if (user != null) {
+
+                    HideAllFABs();
+                    ResetFABs();
+
+                    launchFragments();
+
+                } else {
+
+                    startActivityForResult(
+                            // Get an instance of AuthUI based on the default app
+                            AuthUI.getInstance().createSignInIntentBuilder().build(),
+                            RC_SIGN_IN);
+                }
+            }
+        };
+    }
+
+    public void launchFragments() {
+
+        if (emptyInstance) {
+
+            if (mDualPane) {
+
+                listFragment = new ListFragment();
+                detailFragment = new DetailFragment();
+
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.frame_left, listFragment, INITIAL_LIST_FRAGMENT)
+                        .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
+                        .commitAllowingStateLoss();
+
+            } else {
+
+                listFragment = new ListFragment();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.frame_full, listFragment, INITIAL_LIST_FRAGMENT)
+                        .commitAllowingStateLoss();
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == RC_SIGN_IN) {
+
+            if (resultCode == RESULT_OK) {
+//                Sign-in succeeded, set up UI
+                Toast.makeText(this, "Signed in!", Toast.LENGTH_SHORT).show();
+
+            } else if (resultCode == RESULT_CANCELED) {
+//                Sign in was canceled by the user, finish the activity
+                Toast.makeText(this, "Sign in canceled", Toast.LENGTH_SHORT).show();
+                finish();
             }
         }
     }
@@ -302,6 +348,8 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
         editFragment = (EditFragment) getSupportFragmentManager()
                 .findFragmentByTag(INITIAL_EDIT_FRAGMENT);
+
+        clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, 0);
 
         int fabID = v.getId();
         switch (fabID) {
@@ -369,8 +417,6 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 //    CANCEL FAB
             case R.id.fab_cancel:
 
-                listFragment.addClickListener();
-
                 if (mDualPane) {
 
                     getSupportFragmentManager().beginTransaction()
@@ -385,7 +431,7 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
                 break;
 //    SAVE FAB
             case R.id.fab_save:
-//        TODO real data will have unique post ID - WORKS FOR ONLY NEW JOTS
+
                 String[] dataToSave = editFragment.dataToSave();
 
                 title = dataToSave[0];
@@ -422,9 +468,23 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 //    DELETE FAB
             case R.id.fab_delete:
 
+                listFragment.deleteJot(clickedPosition);
+
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.frame_full, listFragment, INITIAL_LIST_FRAGMENT)
+                        .commit();
+
                 break;
         }
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        mFirebaseAuth.addAuthStateListener(mAuthStateListener);
     }
 
     @Override
@@ -545,13 +605,13 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         if (mDualPane) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
-                    .commit();
+                    .commitAllowingStateLoss();
 
         } else {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.frame_full, detailFragment, INITIAL_DETAIL_FRAGMENT)
                     .addToBackStack(null)
-                    .commit();
+                    .commitAllowingStateLoss();
         }
     }
 

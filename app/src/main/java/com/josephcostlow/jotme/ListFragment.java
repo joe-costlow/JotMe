@@ -10,6 +10,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,8 +18,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -29,19 +41,23 @@ import java.util.ArrayList;
  * Use the {@link ListFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ListFragment extends Fragment implements JotAdapter.OnItemClickListener {
+public class ListFragment extends Fragment implements JotAdapter.ClickListener {
+    public static final String ANONYMOUS = "anonymous";
+    public static final int RC_SIGN_IN = 1;
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private final SharedPreferences sharedPreferences = MainActivity.sharedPreferences;
-    ArrayList<Jot> jotsData;
+    List<Jot> jotsData;
     Context context;
     JotAdapter mAdapter;
     RecyclerView recyclerView;
     CardView emptyRecyclerCard;
     TextView emptyView;
     int emptyClickedPosition = 0;
+    //    private FirebaseRecyclerAdapter<Jot, JotViewHolder> mFirebaseAdapter;
+    ItemClickListener itemClickListener;
     private boolean autoSelector;
     private int clickedPosition;
     private boolean recyclerIsEmpty;
@@ -60,6 +76,18 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     private String SHARED_PREFS_EMPTY_RECYCLER_KEY = MainActivity.SHARED_PREFS_EMPTY_RECYCLER_KEY;
     private ItemTouchHelper itemTouchHelper;
     private boolean mSearchMode = MainActivity.mSearchMode;
+    private FirebaseDatabase mJotsDatabase;
+    private DatabaseReference mJotsDatabaseReference;
+    private DatabaseReference mJotsDatabaseUsersReference;
+    private DatabaseReference mJotsDatabaseSpecificUserReference;
+    private ChildEventListener mChildEventListener;
+    private String mUsername;
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseAuth.AuthStateListener mAuthStateListener;
+    private FirebaseUser mUser;
+    private String mUserID;
+//    private ValueEventListener mValueEventListener;
+//    private ChildEventListener mChildEventListener;
 
     public ListFragment() {
         // Required empty public constructor
@@ -111,7 +139,7 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         MenuItem menuItem = menu.findItem(R.id.menu_search);
         final SearchView searchView = (SearchView) menuItem.getActionView();
 
-        final ArrayList<Jot> originalJotList = jotsData;
+        final List<Jot> originalJotList = jotsData;    //TODO ArrayList to List
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -122,7 +150,7 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
             @Override
             public boolean onQueryTextChange(String newText) {
 
-                ArrayList<Jot> newList = new ArrayList<>();
+                List<Jot> newList = new ArrayList<>(); //TODO ArrayList to List
 
                 for (Jot jot : originalJotList) {
 
@@ -157,9 +185,9 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
                 if (!newText.isEmpty()) {
 
                     jotsData = newList;
-                    mAdapter = new JotAdapter(context, jotsData, ListFragment.this);
+//                    mAdapter = new JotAdapter(context, jotsData, ListFragment.this);
                     recyclerView.setAdapter(mAdapter);
-                    mAdapter.setFilter(jotsData);
+//                    mAdapter.setFilter(jotsData);
 
                     if (!jotsData.isEmpty()) {
                         publicOnClick(mAdapter.getItemCount() - 1);
@@ -168,7 +196,7 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
                 } else {
 
                     jotsData = originalJotList;
-                    mAdapter = new JotAdapter(context, originalJotList, ListFragment.this);
+//                    mAdapter = new JotAdapter(context, originalJotList, ListFragment.this);
                     recyclerView.setAdapter(mAdapter);
 
                     if (!jotsData.isEmpty()) {
@@ -188,7 +216,7 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_list, container, false);
@@ -202,18 +230,71 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
 
         mEditTitle.EditToolbarText(getResources().getString(R.string.app_name));
 
-        populateJotList();
+        mUsername = ANONYMOUS;
+
+        jotsData = new ArrayList<>();
+
+        mJotsDatabase = FirebaseDatabase.getInstance();
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mUser = mFirebaseAuth.getCurrentUser();
+        mUserID = mUser.getUid();
+
+        mJotsDatabaseReference = mJotsDatabase.getReference();
+        mJotsDatabaseUsersReference = mJotsDatabaseReference.child("users");
+        mJotsDatabaseSpecificUserReference = mJotsDatabaseUsersReference.child(mUserID);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setReverseLayout(true);
         layoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(layoutManager);
 
+        HideRecycler();
+
         setupAdapter();
 
-        UpdateUIList();
+        mJotsDatabaseReference.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Log.v("DATABASE ACCESS", "DATABASE ACCESS GRANTED");
+            }
 
-        attachItemTouchHelper();
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.v("DATABASE ON CANCEL", databaseError.toString());
+            }
+        });
+
+        mJotsDatabaseSpecificUserReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                populateLocalList(dataSnapshot);
+
+                mDataUpdate.UIUpdate();
+
+                attachItemTouchHelper();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         return rootView;
     }
@@ -264,43 +345,15 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     public void onDetach() {
         super.onDetach();
         mListener = null;
-        mOnClickListener = null;
-    }
-
-    @Override
-    public void onClick(View view, int position) {
-
-        autoSelector = false;
-        clickedPosition = position;
-
-        publicOnClick(clickedPosition);
-    }
-
-    @Override
-    public void publicOnClick(int position) {
-
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean(SHARED_PREFS_AUTO_SELECT_KEY, autoSelector);
-        editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, position);
-        editor.apply();
-
-        String title = jotsData.get(position).getTitle();
-        String tagOne = jotsData.get(position).getTagOne();
-        String tagTwo = jotsData.get(position).getTagTwo();
-        String tagThree = jotsData.get(position).getTagThree();
-        String message = jotsData.get(position).getMessage();
-        mOnClickListener.OnListItemClick(title, tagOne, tagTwo, tagThree, message);
     }
 
     public void UpdateUIList() {
-
-        addClickListener();
 
         mFABHide.EnterHideFABList();
 
         recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
 
-        if (jotsData.isEmpty()) {
+        if (mAdapter.getItemCount() == 0) {
 
             recyclerIsEmpty = true;
             HideRecycler();
@@ -336,29 +389,32 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         editor.apply();
     }
 
-    public void populateJotList() {
+    public void populateLocalList(DataSnapshot dataSnapshot) {
 
-//        start of mock data collection     TODO collect real data
         jotsData = new ArrayList<>();
 
-        for (int i = 1; i <= 5; i++) {
+        for (DataSnapshot ds : dataSnapshot.getChildren()) {
 
             Jot jot = new Jot();
-            jot.setTitle("Title " + i);
-            jot.setTagOne("Tag One");
-            jot.setTagTwo("Tag Two");
-            jot.setTagThree("Tag Three");
-            jot.setMessage("This is a sample message " + i);
-            jot.setUniqueID(i);
+
+//            TODO DON'T CHANGE, WORKS TO POPULATE ARRAYLIST - START
+
+            jot.setTitle(ds.getValue(Jot.class).getTitle());
+            jot.setTagOne(ds.getValue(Jot.class).getTagOne());
+            jot.setTagTwo(ds.getValue(Jot.class).getTagTwo());
+            jot.setTagThree(ds.getValue(Jot.class).getTagThree());
+            jot.setMessage(ds.getValue(Jot.class).getMessage());
+            jot.setUniqueID(ds.getValue(Jot.class).getUniqueID());
 
             jotsData.add(jot);
+//            TODO DON'T CHANGE, WORKS TO POPULATE ARRAYLIST - END - 10 LINES
         }
-//        end of mock data collection
     }
 
     public void setupAdapter() {
 
-        mAdapter = new JotAdapter(context, jotsData, ListFragment.this);
+        mAdapter = new JotAdapter(Jot.class, R.layout.list_item, JotViewHolder.class, mJotsDatabaseSpecificUserReference, ListFragment.this);
+
         recyclerView.setAdapter(mAdapter);
     }
 
@@ -366,14 +422,51 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
 
         ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
+            public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+
+                if (mDualPane) {
+
+                    Fragment testFragment = ((MainActivity) context).getSupportFragmentManager().findFragmentById(R.id.frame_right);
+
+                    if ((testFragment instanceof EditFragment) || mSearchMode) {
+
+                        return 0;
+                    }
+
+                } else {
+
+                    if (mSearchMode) {
+
+                        return 0;
+                    }
+                }
+
+                return super.getSwipeDirs(recyclerView, viewHolder);
+            }
+
+            @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
                 return false;
             }
 
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                int id = viewHolder.getAdapterPosition();
-                deleteJot(id);
+
+                if (mDualPane) {
+
+                    Fragment testFragment = ((MainActivity) context).getSupportFragmentManager().findFragmentById(R.id.frame_right);
+
+                    if (!(testFragment instanceof EditFragment)) {
+
+                        int id = viewHolder.getAdapterPosition();
+                        deleteJot(id);
+                    }
+
+                } else {
+
+                    int id = viewHolder.getAdapterPosition();
+                    deleteJot(id);
+                }
             }
         };
 
@@ -398,31 +491,79 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
     }
 
     public void addJot(String title, String tagOne, String tagTwo, String tagThree, String message) {
-        mAdapter.addJot(title, tagOne, tagTwo, tagThree, message);
 
-        mAdapter.notifyItemInserted(mAdapter.getItemCount() - 1);
+        //TODO works to add new Jot - start
 
-        mDataUpdate.UIUpdate();
+        String id = mJotsDatabaseReference.push().getKey();
+
+        Jot jotToSave = new Jot(title, tagOne, tagTwo, tagThree, message, id);
+
+        mJotsDatabaseSpecificUserReference.child(id).setValue(jotToSave);
+
+        clickedPosition = mAdapter.getItemCount();
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition);
+        editor.apply();
+        //TODO works to add new Jot - end
     }
 
     public void editJot(String title, String tagOne, String tagTwo, String tagThree, String message) {
-        mAdapter.editJot(title, tagOne, tagTwo, tagThree, message);
 
-        mAdapter.notifyDataSetChanged();
+        clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, jotsData.size() - 1);
 
-        mDataUpdate.UIUpdate();
+        String uniqueID = jotsData.get(clickedPosition).getUniqueID();
+
+        Jot jot = new Jot();
+
+        jot.setTitle(title);
+        jot.setTagOne(tagOne);
+        jot.setTagTwo(tagTwo);
+        jot.setTagThree(tagThree);
+        jot.setMessage(message);
+        jot.setUniqueID(uniqueID);
+
+        mJotsDatabaseSpecificUserReference.child(uniqueID).setValue(jot);
     }
 
     public void deleteJot(int position) {
-        mAdapter.deleteJot(position);
 
-        mAdapter.notifyDataSetChanged();
+        clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, jotsData.size() - 1);
 
-        mDataUpdate.UIUpdate();
-    }
+        if (position < clickedPosition) {
 
-    public void addClickListener() {
-        mAdapter.setClickListener(this);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition - 1);
+            editor.putBoolean(SHARED_PREFS_AUTO_SELECT_KEY, false);
+            editor.apply();
+        }
+
+        clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, jotsData.size() - 1);
+
+        if (mDualPane) {
+
+            Fragment testFragment = ((MainActivity) context).getSupportFragmentManager().findFragmentById(R.id.frame_right);
+
+            if (!(testFragment instanceof EditFragment) && !mSearchMode) {
+
+                String uniqueID = jotsData.get(position).getUniqueID();
+
+                mJotsDatabaseSpecificUserReference.child(uniqueID).removeValue();
+
+                Toast.makeText(context, "DELETED", Toast.LENGTH_SHORT).show();
+            }
+
+        } else {
+
+            if (!mSearchMode) {
+
+                String uniqueID = jotsData.get(position).getUniqueID();
+
+                mJotsDatabaseSpecificUserReference.child(uniqueID).removeValue();
+
+                Toast.makeText(context, "DELETED", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     @Override
@@ -435,6 +576,54 @@ public class ListFragment extends Fragment implements JotAdapter.OnItemClickList
         super.onPause();
 
         mFABHide.ExitHideFABList();
+
+        mChildEventListener = null;
+    }
+
+    @Override
+    public void publicOnClick(int position) {
+
+        if (mDualPane) {
+
+            Fragment testFragment = ((MainActivity) context).getSupportFragmentManager().findFragmentById(R.id.frame_right);
+
+            if (!(testFragment instanceof EditFragment)) {
+
+                Toast.makeText(context, "CLICKED: " + position, Toast.LENGTH_SHORT).show();
+
+                clickedPosition = position;
+
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean(SHARED_PREFS_AUTO_SELECT_KEY, autoSelector);
+                editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, position);
+                editor.apply();
+
+                String title = jotsData.get(position).getTitle();
+                String tagOne = jotsData.get(position).getTagOne();
+                String tagTwo = jotsData.get(position).getTagTwo();
+                String tagThree = jotsData.get(position).getTagThree();
+                String message = jotsData.get(position).getMessage();
+                mOnClickListener.OnListItemClick(title, tagOne, tagTwo, tagThree, message);
+            }
+
+        } else {
+
+            Toast.makeText(context, "CLICKED: " + position, Toast.LENGTH_SHORT).show();
+
+            clickedPosition = position;
+
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(SHARED_PREFS_AUTO_SELECT_KEY, autoSelector);
+            editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, position);
+            editor.apply();
+
+            String title = jotsData.get(position).getTitle();
+            String tagOne = jotsData.get(position).getTagOne();
+            String tagTwo = jotsData.get(position).getTagTwo();
+            String tagThree = jotsData.get(position).getTagThree();
+            String message = jotsData.get(position).getMessage();
+            mOnClickListener.OnListItemClick(title, tagOne, tagTwo, tagThree, message);
+        }
     }
 
     public interface OnItemClick {
