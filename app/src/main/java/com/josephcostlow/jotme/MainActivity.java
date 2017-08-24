@@ -132,6 +132,8 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
                 mSearchMode = true;
 
+                listFragment.setupFilterAdapter();
+
                 if (!mDualPane) {
                     mainToolbarTitle.setVisibility(View.GONE);
                 }
@@ -144,9 +146,9 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
                 menuSignOut.setVisible(true);
 
-                EnterHideFABList();
-
                 mSearchMode = false;
+
+                EnterHideFABList();
 
                 if (!mDualPane) {
                     mainToolbarTitle.setVisibility(View.VISIBLE);
@@ -156,6 +158,8 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
                     UIUpdate();
                 }
+
+                listFragment.setupAdapter();
 
                 return false;
             }
@@ -389,7 +393,7 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
                 mainToolbarTitle.setText(toolbarTitle);
 
                 String[] currentJot = detailFragment.DataForEdit();
-//        TODO real data will have unique post ID
+
                 title = currentJot[0];
                 tagOne = currentJot[1];
                 tagTwo = currentJot[2];
@@ -608,6 +612,11 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
                     .commitAllowingStateLoss();
 
         } else {
+
+            mSearchMode = false;
+
+//            listFragment.setupAdapter();
+
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.frame_full, detailFragment, INITIAL_DETAIL_FRAGMENT)
                     .addToBackStack(null)

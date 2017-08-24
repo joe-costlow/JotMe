@@ -18,7 +18,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -58,6 +57,7 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
     int emptyClickedPosition = 0;
     //    private FirebaseRecyclerAdapter<Jot, JotViewHolder> mFirebaseAdapter;
     ItemClickListener itemClickListener;
+    SearchView searchView;
     private boolean autoSelector;
     private int clickedPosition;
     private boolean recyclerIsEmpty;
@@ -75,7 +75,7 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
     private String SHARED_PREFS_CLICKED_POSITION_KEY = MainActivity.SHARED_PREFS_CLICKED_POSITION_KEY;
     private String SHARED_PREFS_EMPTY_RECYCLER_KEY = MainActivity.SHARED_PREFS_EMPTY_RECYCLER_KEY;
     private ItemTouchHelper itemTouchHelper;
-    private boolean mSearchMode = MainActivity.mSearchMode;
+    private boolean mSearchMode;
     private FirebaseDatabase mJotsDatabase;
     private DatabaseReference mJotsDatabaseReference;
     private DatabaseReference mJotsDatabaseUsersReference;
@@ -86,6 +86,8 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
     private FirebaseAuth.AuthStateListener mAuthStateListener;
     private FirebaseUser mUser;
     private String mUserID;
+    private FilteredAdapter mFilteredAdapter;
+    private List<Jot> originalJotList;
 //    private ValueEventListener mValueEventListener;
 //    private ChildEventListener mChildEventListener;
 
@@ -128,7 +130,7 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 
         MenuItem menuItem = menu.findItem(R.id.menu_search);
-        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView = (SearchView) menuItem.getActionView();
 
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -137,9 +139,7 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
     public void onPrepareOptionsMenu(Menu menu) {
 
         MenuItem menuItem = menu.findItem(R.id.menu_search);
-        final SearchView searchView = (SearchView) menuItem.getActionView();
-
-        final List<Jot> originalJotList = jotsData;    //TODO ArrayList to List
+        searchView = (SearchView) menuItem.getActionView();
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -158,6 +158,16 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
                     String searchTagTwo = jot.getTagTwo();
                     String searchTagThree = jot.getTagThree();
 
+                    if (jot.getTagTwo().equals(getResources().getString(R.string.empty_tag_edit))) {
+
+                        searchTagTwo = "";
+                    }
+
+                    if (jot.getTagThree().equals(getResources().getString(R.string.empty_tag_edit))) {
+
+                        searchTagThree = "";
+                    }
+
                     if (searchTagOne.contains(newText)
                             || searchTagTwo.contains(newText)
                             || searchTagThree.contains(newText)) {
@@ -175,7 +185,7 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
 
                     if (!jotsData.isEmpty()) {
 
-                        if (filteredJot.getUniqueID() == jotsData.get(clickedPosition).getUniqueID()) {
+                        if (filteredJot.getUniqueID().equals(jotsData.get(clickedPosition).getUniqueID())) {
 
                             emptyClickedPosition = position;
                         }
@@ -185,21 +195,21 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
                 if (!newText.isEmpty()) {
 
                     jotsData = newList;
-//                    mAdapter = new JotAdapter(context, jotsData, ListFragment.this);
-                    recyclerView.setAdapter(mAdapter);
-//                    mAdapter.setFilter(jotsData);
+                    mFilteredAdapter = new FilteredAdapter(context, jotsData, ListFragment.this);
+                    recyclerView.setAdapter(mFilteredAdapter);
+                    mFilteredAdapter.setFilter(jotsData);
 
-                    if (!jotsData.isEmpty()) {
-                        publicOnClick(mAdapter.getItemCount() - 1);
+                    if (!jotsData.isEmpty() && mDualPane) {
+                        publicOnClick(mFilteredAdapter.getItemCount() - 1);
                     }
 
                 } else {
 
                     jotsData = originalJotList;
-//                    mAdapter = new JotAdapter(context, originalJotList, ListFragment.this);
-                    recyclerView.setAdapter(mAdapter);
+                    mFilteredAdapter = new FilteredAdapter(context, originalJotList, ListFragment.this);
+                    recyclerView.setAdapter(mFilteredAdapter);
 
-                    if (!jotsData.isEmpty()) {
+                    if (!jotsData.isEmpty() && mDualPane) {
                         publicOnClick(emptyClickedPosition);
                     }
                 }
@@ -231,6 +241,8 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
         mEditTitle.EditToolbarText(getResources().getString(R.string.app_name));
 
         mUsername = ANONYMOUS;
+
+        mSearchMode = MainActivity.mSearchMode;
 
         jotsData = new ArrayList<>();
 
@@ -286,6 +298,20 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
                 populateLocalList(dataSnapshot);
 
                 mDataUpdate.UIUpdate();
+
+                if (mDualPane) {
+
+                    setupAdapter();
+                }
+
+                if (dataSnapshot.hasChildren()) {
+
+                    searchView.setVisibility(View.VISIBLE);
+
+                } else {
+
+                    searchView.setVisibility(View.GONE);
+                }
 
                 attachItemTouchHelper();
             }
@@ -353,7 +379,7 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
 
         recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
 
-        if (mAdapter.getItemCount() == 0) {
+        if (recyclerView.getAdapter().getItemCount() == 0) {
 
             recyclerIsEmpty = true;
             HideRecycler();
@@ -367,14 +393,14 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
 
                 clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, mAdapter.getItemCount() - 1);
 
-                if (clickedPosition > mAdapter.getItemCount() - 1) {
-                    clickedPosition = mAdapter.getItemCount() - 1;
+                if (clickedPosition > recyclerView.getAdapter().getItemCount() - 1) {
+                    clickedPosition = recyclerView.getAdapter().getItemCount() - 1;
                 }
 
                 try {
                     recyclerView.smoothScrollToPosition(clickedPosition);
                 } catch (Exception e) {
-                    clickedPosition = mAdapter.getItemCount() - 1;
+                    clickedPosition = recyclerView.getAdapter().getItemCount() - 1;
                 }
 
                 if (!jotsData.isEmpty()) {
@@ -390,6 +416,8 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
     }
 
     public void populateLocalList(DataSnapshot dataSnapshot) {
+
+        originalJotList = new ArrayList<>();
 
         jotsData = new ArrayList<>();
 
@@ -408,6 +436,7 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
 
             jotsData.add(jot);
 //            TODO DON'T CHANGE, WORKS TO POPULATE ARRAYLIST - END - 10 LINES
+            originalJotList.add(jot);
         }
     }
 
@@ -418,11 +447,20 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
         recyclerView.setAdapter(mAdapter);
     }
 
+    public void setupFilterAdapter() {
+
+        mFilteredAdapter = new FilteredAdapter(context, jotsData, ListFragment.this);
+
+        recyclerView.setAdapter(mFilteredAdapter);
+    }
+
     public void attachItemTouchHelper() {
 
         ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+
+                mSearchMode = MainActivity.mSearchMode;
 
                 if (mDualPane) {
 
@@ -502,8 +540,11 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
 
         clickedPosition = mAdapter.getItemCount();
 
+        recyclerIsEmpty = false;
+
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition);
+        editor.putBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, recyclerIsEmpty);
         editor.apply();
         //TODO works to add new Jot - end
     }
@@ -549,8 +590,6 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
                 String uniqueID = jotsData.get(position).getUniqueID();
 
                 mJotsDatabaseSpecificUserReference.child(uniqueID).removeValue();
-
-                Toast.makeText(context, "DELETED", Toast.LENGTH_SHORT).show();
             }
 
         } else {
@@ -560,8 +599,6 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
                 String uniqueID = jotsData.get(position).getUniqueID();
 
                 mJotsDatabaseSpecificUserReference.child(uniqueID).removeValue();
-
-                Toast.makeText(context, "DELETED", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -578,6 +615,10 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
         mFABHide.ExitHideFABList();
 
         mChildEventListener = null;
+
+        if (!mDualPane) {
+            mSearchMode = false;
+        }
     }
 
     @Override
@@ -588,8 +629,6 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
             Fragment testFragment = ((MainActivity) context).getSupportFragmentManager().findFragmentById(R.id.frame_right);
 
             if (!(testFragment instanceof EditFragment)) {
-
-                Toast.makeText(context, "CLICKED: " + position, Toast.LENGTH_SHORT).show();
 
                 clickedPosition = position;
 
@@ -607,8 +646,6 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
             }
 
         } else {
-
-            Toast.makeText(context, "CLICKED: " + position, Toast.LENGTH_SHORT).show();
 
             clickedPosition = position;
 

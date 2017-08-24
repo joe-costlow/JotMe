@@ -12,13 +12,10 @@ import com.google.firebase.database.Query;
 
 public class JotAdapter extends FirebaseRecyclerAdapter<Jot, JotViewHolder> {
 
-    ItemClickListener mListener;
     ClickListener mInterfaceListener;
     ListFragment listFragment;
     Context context;
     private boolean mDualPane;
-    private boolean autoSelector;
-
 
     public JotAdapter(Class<Jot> modelClass, @LayoutRes int modelLayout, Class<JotViewHolder> viewHolderClass, Query query, ListFragment listFragment) {
         super(modelClass, modelLayout, viewHolderClass, query);

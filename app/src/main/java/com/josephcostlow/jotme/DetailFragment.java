@@ -249,12 +249,6 @@ public class DetailFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
-        outState.putString(TITLE_KEY, textTitle.getText().toString());
-        outState.putString(TAG_ONE_KEY, textTagOne.getText().toString());
-        outState.putString(TAG_TWO_KEY, textTagTwo.getText().toString());
-        outState.putString(TAG_THREE_KEY, textTagThree.getText().toString());
-        outState.putString(MESSAGE_KEY, textMessage.getText().toString());
     }
 
     @Override
