@@ -1,6 +1,7 @@
 package com.josephcostlow.jotme;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
@@ -47,6 +48,7 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String ACTION_DATA_UPDATED = "android.appwidget.action.ACTION_DATA_UPDATED";
     private final SharedPreferences sharedPreferences = MainActivity.sharedPreferences;
     List<Jot> jotsData;
     Context context;
@@ -58,6 +60,7 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
     //    private FirebaseRecyclerAdapter<Jot, JotViewHolder> mFirebaseAdapter;
     ItemClickListener itemClickListener;
     SearchView searchView;
+    MenuItem menuSearch;
     private boolean autoSelector;
     private int clickedPosition;
     private boolean recyclerIsEmpty;
@@ -88,8 +91,6 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
     private String mUserID;
     private FilteredAdapter mFilteredAdapter;
     private List<Jot> originalJotList;
-//    private ValueEventListener mValueEventListener;
-//    private ChildEventListener mChildEventListener;
 
     public ListFragment() {
         // Required empty public constructor
@@ -130,7 +131,19 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 
         MenuItem menuItem = menu.findItem(R.id.menu_search);
+        menuSearch = menu.findItem(R.id.menu_search);
         searchView = (SearchView) menuItem.getActionView();
+
+        if (jotsData.size() != 0) {
+
+            menuSearch.setVisible(true);
+            searchView.setVisibility(View.VISIBLE);
+
+        } else {
+
+            menuSearch.setVisible(false);
+            searchView.setVisibility(View.GONE);
+        }
 
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -264,36 +277,12 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
 
         setupAdapter();
 
-        mJotsDatabaseReference.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Log.v("DATABASE ACCESS", "DATABASE ACCESS GRANTED");
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.v("DATABASE ON CANCEL", databaseError.toString());
-            }
-        });
-
         mJotsDatabaseSpecificUserReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+
+                Intent intentToWidget = new Intent(ACTION_DATA_UPDATED);
+                context.sendBroadcast(intentToWidget);
 
                 populateLocalList(dataSnapshot);
 
@@ -306,11 +295,19 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
 
                 if (dataSnapshot.hasChildren()) {
 
-                    searchView.setVisibility(View.VISIBLE);
+                    if (searchView != null) {
+
+                        menuSearch.setVisible(true);
+                        searchView.setVisibility(View.VISIBLE);
+                    }
 
                 } else {
 
-                    searchView.setVisibility(View.GONE);
+                    if (searchView != null) {
+
+                        menuSearch.setVisible(false);
+                        searchView.setVisibility(View.GONE);
+                    }
                 }
 
                 attachItemTouchHelper();
@@ -400,7 +397,8 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
                 try {
                     recyclerView.smoothScrollToPosition(clickedPosition);
                 } catch (Exception e) {
-                    clickedPosition = recyclerView.getAdapter().getItemCount() - 1;
+//                    clickedPosition = recyclerView.getAdapter().getItemCount() - 1;
+                    Log.v("UPDATE ERROR", e.toString());
                 }
 
                 if (!jotsData.isEmpty()) {
@@ -536,9 +534,11 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
 
         Jot jotToSave = new Jot(title, tagOne, tagTwo, tagThree, message, id);
 
+        jotsData.add(jotToSave);
+
         mJotsDatabaseSpecificUserReference.child(id).setValue(jotToSave);
 
-        clickedPosition = mAdapter.getItemCount();
+        clickedPosition = jotsData.size();
 
         recyclerIsEmpty = false;
 
@@ -637,11 +637,11 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
                 editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, position);
                 editor.apply();
 
-                String title = jotsData.get(position).getTitle();
-                String tagOne = jotsData.get(position).getTagOne();
-                String tagTwo = jotsData.get(position).getTagTwo();
-                String tagThree = jotsData.get(position).getTagThree();
-                String message = jotsData.get(position).getMessage();
+                String title = jotsData.get(clickedPosition).getTitle();
+                String tagOne = jotsData.get(clickedPosition).getTagOne();
+                String tagTwo = jotsData.get(clickedPosition).getTagTwo();
+                String tagThree = jotsData.get(clickedPosition).getTagThree();
+                String message = jotsData.get(clickedPosition).getMessage();
                 mOnClickListener.OnListItemClick(title, tagOne, tagTwo, tagThree, message);
             }
 

@@ -61,6 +61,7 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     public ListFragment listFragment;
     public DetailFragment detailFragment;
     public EditFragment editFragment;
+
     //    misc
     Toolbar mainToolbar;
     TextView mainToolbarTitle;
@@ -86,8 +87,8 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         searchView = (SearchView) menuSearch.getActionView();
         searchView.setQueryHint(getResources().getString(R.string.searchview_hint));
 
-        searchView.setVisibility(View.VISIBLE);
-        menuSearch.setVisible(true);
+        searchView.setVisibility(View.GONE);
+        menuSearch.setVisible(false);
 
         menuSignOut.setVisible(true);
 
@@ -96,9 +97,6 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-
-        menu.findItem(R.id.menu_search).setVisible(true);
-        searchView.setVisibility(View.VISIBLE);
 
         menuSignOut.setVisible(true);
 
@@ -183,8 +181,8 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
             Toast.makeText(getApplicationContext(), "Sign Out", Toast.LENGTH_SHORT).show();
 
-//            AuthUI.getInstance().signOut(this);
-            mFirebaseAuth.signOut();
+            AuthUI.getInstance().signOut(this);
+//            mFirebaseAuth.signOut();
         }
 
         return super.onOptionsItemSelected(item);
@@ -309,14 +307,14 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.frame_left, listFragment, INITIAL_LIST_FRAGMENT)
                         .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
-                        .commitAllowingStateLoss();
+                        .commit();
 
             } else {
 
                 listFragment = new ListFragment();
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.frame_full, listFragment, INITIAL_LIST_FRAGMENT)
-                        .commitAllowingStateLoss();
+                        .commit();
             }
         }
     }
@@ -507,6 +505,8 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     @Override
     protected void onStop() {
         super.onStop();
+
+        mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
     }
 
     @Override
@@ -609,18 +609,16 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         if (mDualPane) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
-                    .commitAllowingStateLoss();
+                    .commit();
 
         } else {
 
             mSearchMode = false;
 
-//            listFragment.setupAdapter();
-
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.frame_full, detailFragment, INITIAL_DETAIL_FRAGMENT)
                     .addToBackStack(null)
-                    .commitAllowingStateLoss();
+                    .commit();
         }
     }
 
