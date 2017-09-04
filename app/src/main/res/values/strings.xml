@@ -25,6 +25,15 @@
     <string name="searchview_title">Search</string>
     <string name="signout_title">Sign Out</string>
 
+    <!-- Notification texts -->
+    <string name="notification_context_title">Reminder</string>
+    <string name="notification_context_text">Have you used JotMe lately?</string>
+
+    <!-- Toast texts -->
+    <string name="toast_signed_in">Signed In!</string>
+    <string name="toast_signed_in_cancelled">Sign In Cancelled</string>
+    <string name="toast_signed_out">Signed Out</string>
+
     <!-- Sample texts -->
     <string name="sample_message">This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text.</string>
     <string name="sample_title">This is a sample title</string>

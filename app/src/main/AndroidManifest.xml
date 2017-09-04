@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.josephcostlow.jotme">
 
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -33,6 +35,14 @@
         <service
             android:name=".WidgetRemoteViewsService"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+        <service
+            android:name=".ReminderNotificationJob"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

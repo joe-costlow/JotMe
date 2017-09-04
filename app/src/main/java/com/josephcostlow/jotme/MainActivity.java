@@ -16,6 +16,11 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.firebase.jobdispatcher.FirebaseJobDispatcher;
+import com.firebase.jobdispatcher.GooglePlayDriver;
+import com.firebase.jobdispatcher.Job;
+import com.firebase.jobdispatcher.Lifetime;
+import com.firebase.jobdispatcher.Trigger;
 import com.firebase.ui.auth.AuthUI;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -71,9 +76,12 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     MenuItem menuSearch;
     MenuItem menuSignOut;
     FirebaseAuth mFirebaseAuth;
+    FirebaseUser user;
     private boolean recyclerIsEmpty;
     private boolean emptyInstance;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
+    private FirebaseJobDispatcher dispatcher;
+    private Job reminderNotificationJob;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -179,7 +187,7 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
             editor.clear();
             editor.apply();
 
-            Toast.makeText(getApplicationContext(), "Sign Out", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), getResources().getString(R.string.toast_signed_out), Toast.LENGTH_SHORT).show();
 
             AuthUI.getInstance().signOut(this);
 //            mFirebaseAuth.signOut();
@@ -189,7 +197,7 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {      //TODO changed to final
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -220,6 +228,8 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
         deleteFAB = (FloatingActionButton) findViewById(R.id.fab_delete);
         deleteFAB.setOnClickListener(this);
+
+        dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(getApplicationContext()));
 
         HideAllFABs();
 
@@ -275,12 +285,14 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
 
-                FirebaseUser user = firebaseAuth.getCurrentUser();
+                user = firebaseAuth.getCurrentUser();
 
                 if (user != null) {
 
                     HideAllFABs();
                     ResetFABs();
+
+                    dispatcher.cancelAll();
 
                     launchFragments();
 
@@ -319,6 +331,20 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         }
     }
 
+    public Job createReminderNotificationJob(FirebaseJobDispatcher jobDispatcher) {
+
+        Job job = jobDispatcher.newJobBuilder()
+                .setLifetime(Lifetime.FOREVER)
+                .setService(ReminderNotificationJob.class)
+                .setTag("reminder-notification-job")
+                .setReplaceCurrent(true)
+                .setRecurring(true)
+                .setTrigger(Trigger.executionWindow(5, 10))
+                .build();
+
+        return job;
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -327,11 +353,11 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
             if (resultCode == RESULT_OK) {
 //                Sign-in succeeded, set up UI
-                Toast.makeText(this, "Signed in!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getResources().getString(R.string.toast_signed_in), Toast.LENGTH_SHORT).show();
 
             } else if (resultCode == RESULT_CANCELED) {
 //                Sign in was canceled by the user, finish the activity
-                Toast.makeText(this, "Sign in canceled", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getResources().getString(R.string.toast_signed_in_cancelled), Toast.LENGTH_SHORT).show();
                 finish();
             }
         }
@@ -339,7 +365,7 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
     @Override
     public void onClick(View v) {
-//        TODO real data will have unique post ID
+
         String toolbarTitle, title, tagOne, tagTwo, tagThree, message;
 
         listFragment = (ListFragment) getSupportFragmentManager()
@@ -454,6 +480,8 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
                 if (mDualPane) {
 
+                    detailFragment = DetailFragment.newInstance(title, tagOne, tagTwo, tagThree, message);
+
                     getSupportFragmentManager().beginTransaction()
                             .replace(R.id.frame_right, detailFragment, INITIAL_DETAIL_FRAGMENT)
                             .commit();
@@ -507,6 +535,13 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         super.onStop();
 
         mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
+
+        if (user != null) {
+
+            dispatcher.cancelAll();
+            reminderNotificationJob = createReminderNotificationJob(dispatcher);
+            dispatcher.schedule(reminderNotificationJob);
+        }
     }
 
     @Override
