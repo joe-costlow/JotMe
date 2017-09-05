@@ -122,7 +122,17 @@ public class WidgetListRemoteViewsFactory implements RemoteViewsService.RemoteVi
 
         RemoteViews remoteViews = new RemoteViews(mContext.getPackageName(), R.layout.widget_list_item);
 
-        remoteViews.setTextViewText(R.id.widget_list_item_title, jotList.get(position).getTitle());
+        if (jotList.size() > 0) {
+
+            remoteViews.setTextViewText(R.id.widget_list_item_title, jotList.get(position).getTitle());
+
+            final Intent fillInIntent = new Intent();
+
+            fillInIntent.putExtra("position", position);
+
+            remoteViews.setOnClickFillInIntent(R.id.widget_list_item, fillInIntent);
+            remoteViews.setOnClickFillInIntent(R.id.widget_list_item_title, fillInIntent);
+        }
 
         return remoteViews;
     }

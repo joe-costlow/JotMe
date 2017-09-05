@@ -17,6 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:text="@string/app_name"
+            android:textColor="@android:color/white"
             android:textSize="24sp" />
 
     </FrameLayout>
@@ -24,7 +25,8 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:background="@android:color/white">
 
         <ListView
             android:id="@+id/widget_list"

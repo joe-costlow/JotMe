@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.support.v4.app.TaskStackBuilder;
 import android.widget.RemoteViews;
 
 /**
@@ -30,6 +31,14 @@ public class JotMeAppWidget extends AppWidgetProvider {
         for (int appWidgetId : appWidgetIds) {
 
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.jot_me_app_widget);
+
+            Intent listItemIntentTemplate = new Intent(context, MainActivity.class);
+
+            PendingIntent clickedItemPendingIntent = TaskStackBuilder.create(context)
+                    .addNextIntentWithParentStack(listItemIntentTemplate)
+                    .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            views.setPendingIntentTemplate(R.id.widget_list, clickedItemPendingIntent);
 
             Intent intent = new Intent(context, MainActivity.class);
 

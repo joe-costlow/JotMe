@@ -77,6 +77,8 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
     private String SHARED_PREFS_AUTO_SELECT_KEY = MainActivity.SHARED_PREFS_AUTO_SELECT_KEY;
     private String SHARED_PREFS_CLICKED_POSITION_KEY = MainActivity.SHARED_PREFS_CLICKED_POSITION_KEY;
     private String SHARED_PREFS_EMPTY_RECYCLER_KEY = MainActivity.SHARED_PREFS_EMPTY_RECYCLER_KEY;
+    private String SHARED_PREFS_ORIGINAL_LIST_SIZE = MainActivity.SHARED_PREFS_ORIGINAL_LIST_SIZE;
+    private String SHARED_PREFS_WIDGET_INTENT = MainActivity.SHARED_PREFS_WIDGET_INTENT;
     private ItemTouchHelper itemTouchHelper;
     private boolean mSearchMode;
     private FirebaseDatabase mJotsDatabase;
@@ -91,6 +93,7 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
     private String mUserID;
     private FilteredAdapter mFilteredAdapter;
     private List<Jot> originalJotList;
+    private boolean widgetIntent;
 
     public ListFragment() {
         // Required empty public constructor
@@ -259,14 +262,7 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
 
         jotsData = new ArrayList<>();
 
-        mJotsDatabase = FirebaseDatabase.getInstance();
-        mFirebaseAuth = FirebaseAuth.getInstance();
-        mUser = mFirebaseAuth.getCurrentUser();
-        mUserID = mUser.getUid();
-
-        mJotsDatabaseReference = mJotsDatabase.getReference();
-        mJotsDatabaseUsersReference = mJotsDatabaseReference.child("users");
-        mJotsDatabaseSpecificUserReference = mJotsDatabaseUsersReference.child(mUserID);
+        setupFirebase();
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setReverseLayout(true);
@@ -370,11 +366,25 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
         mListener = null;
     }
 
+    public void setupFirebase() {
+
+        mJotsDatabase = FirebaseDatabase.getInstance();
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mUser = mFirebaseAuth.getCurrentUser();
+        mUserID = mUser.getUid();
+
+        mJotsDatabaseReference = mJotsDatabase.getReference();
+        mJotsDatabaseUsersReference = mJotsDatabaseReference.child("users");
+        mJotsDatabaseSpecificUserReference = mJotsDatabaseUsersReference.child(mUserID);
+        mJotsDatabaseSpecificUserReference.keepSynced(true);
+    }
+
     public void UpdateUIList() {
 
         mFABHide.EnterHideFABList();
 
         recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
+        widgetIntent = sharedPreferences.getBoolean(SHARED_PREFS_WIDGET_INTENT, false);
 
         if (recyclerView.getAdapter().getItemCount() == 0) {
 
@@ -386,9 +396,9 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
             recyclerIsEmpty = false;
             ShowRecycler();
 
-            if (mDualPane) {
+            clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, mAdapter.getItemCount() - 1);
 
-                clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, mAdapter.getItemCount() - 1);
+            if (mDualPane) {
 
                 if (clickedPosition > recyclerView.getAdapter().getItemCount() - 1) {
                     clickedPosition = recyclerView.getAdapter().getItemCount() - 1;
@@ -404,12 +414,20 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
                 if (!jotsData.isEmpty()) {
                     publicOnClick(clickedPosition);
                 }
+
+            } else {
+
+                if (widgetIntent) {
+                    widgetIntent = false;
+                    publicOnClick(clickedPosition);
+                }
             }
         }
 
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition);
         editor.putBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, recyclerIsEmpty);
+        editor.putBoolean(SHARED_PREFS_WIDGET_INTENT, widgetIntent);
         editor.apply();
     }
 
@@ -436,6 +454,10 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
 //            TODO DON'T CHANGE, WORKS TO POPULATE ARRAYLIST - END - 10 LINES
             originalJotList.add(jot);
         }
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(SHARED_PREFS_ORIGINAL_LIST_SIZE, originalJotList.size());
+        editor.apply();
     }
 
     public void setupAdapter() {

@@ -58,7 +58,10 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     public static final String SHARED_PREFS_CLICKED_POSITION_KEY = "clickedPosition";
     public static final String SHARED_PREFS_EMPTY_RECYCLER_KEY = "emptyRecycler";
     public static final String SHARED_PREFS_SAVE_FAB_VISIBLE = "saveFABVisible";
+    public static final String SHARED_PREFS_ORIGINAL_LIST_SIZE = "originalListSize";
+    public static final String SHARED_PREFS_WIDGET_INTENT = "widgetIntent";
     public static final int RC_SIGN_IN = 1;
+    private static final String ACTION_DATA_UPDATED = "android.appwidget.action.ACTION_DATA_UPDATED";
     public static SharedPreferences sharedPreferences;
     public static int clickedPosition;
     public static boolean mSearchMode;
@@ -66,7 +69,6 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     public ListFragment listFragment;
     public DetailFragment detailFragment;
     public EditFragment editFragment;
-
     //    misc
     Toolbar mainToolbar;
     TextView mainToolbarTitle;
@@ -82,6 +84,7 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     private FirebaseAuth.AuthStateListener mAuthStateListener;
     private FirebaseJobDispatcher dispatcher;
     private Job reminderNotificationJob;
+    private boolean widgetIntent;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -186,6 +189,9 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.clear();
             editor.apply();
+
+            Intent intentToWidget = new Intent(ACTION_DATA_UPDATED);
+            sendBroadcast(intentToWidget);
 
             Toast.makeText(getApplicationContext(), getResources().getString(R.string.toast_signed_out), Toast.LENGTH_SHORT).show();
 
@@ -294,6 +300,9 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
                     dispatcher.cancelAll();
 
+                    Intent intentToWidget = new Intent(ACTION_DATA_UPDATED);
+                    sendBroadcast(intentToWidget);
+
                     launchFragments();
 
                 } else {
@@ -310,6 +319,50 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     public void launchFragments() {
 
         if (emptyInstance) {
+
+            Intent intentFromWidget = getIntent();
+
+            if (intentFromWidget != null) {
+
+                if (intentFromWidget.hasExtra("position")) {
+
+                    int listSize = sharedPreferences.getInt(SHARED_PREFS_ORIGINAL_LIST_SIZE, -1);
+
+                    int widgetClickPosition = intentFromWidget.getIntExtra("position", 0);
+
+                    clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, 0);
+
+                    widgetIntent = true;
+
+                    switch (widgetClickPosition) {
+
+                        case 2:
+                            clickedPosition = listSize - 1;
+                            break;
+
+                        case 1:
+                            clickedPosition = listSize - 2;
+                            break;
+
+                        case 0:
+                            clickedPosition = listSize - 3;
+                            break;
+                    }
+
+                    if (clickedPosition < 0) {
+                        clickedPosition = 0;
+                    }
+                }
+
+            } else {
+
+                widgetIntent = false;
+            }
+
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition);
+            editor.putBoolean(SHARED_PREFS_WIDGET_INTENT, widgetIntent);
+            editor.apply();
 
             if (mDualPane) {
 
@@ -339,7 +392,7 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
                 .setTag("reminder-notification-job")
                 .setReplaceCurrent(true)
                 .setRecurring(true)
-                .setTrigger(Trigger.executionWindow(5, 10))
+                .setTrigger(Trigger.executionWindow(60 * 1, 60 * 2))
                 .build();
 
         return job;
