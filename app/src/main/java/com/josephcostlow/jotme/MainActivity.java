@@ -63,7 +63,6 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     public static final int RC_SIGN_IN = 1;
     private static final String ACTION_DATA_UPDATED = "android.appwidget.action.ACTION_DATA_UPDATED";
     public static SharedPreferences sharedPreferences;
-    public static int clickedPosition;
     public static boolean mSearchMode;
 //    constants for auto-select and clicked positions for List Fragment and List Adapter
     public ListFragment listFragment;
@@ -79,6 +78,7 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     MenuItem menuSignOut;
     FirebaseAuth mFirebaseAuth;
     FirebaseUser user;
+    private int clickedPosition;
     private boolean recyclerIsEmpty;
     private boolean emptyInstance;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
@@ -322,6 +322,8 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
             Intent intentFromWidget = getIntent();
 
+            clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, 0);
+
             if (intentFromWidget != null) {
 
                 if (intentFromWidget.hasExtra("position")) {
@@ -329,8 +331,6 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
                     int listSize = sharedPreferences.getInt(SHARED_PREFS_ORIGINAL_LIST_SIZE, -1);
 
                     int widgetClickPosition = intentFromWidget.getIntExtra("position", 0);
-
-                    clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, 0);
 
                     widgetIntent = true;
 

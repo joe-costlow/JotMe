@@ -8,4 +8,74 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="list_item_title_style">
+        <item name="android:textColor">@android:color/primary_text_light</item>
+        <item name="android:textAppearance">?android:textAppearanceLarge</item>
+    </style>
+
+    <style name="list_item_tag_style">
+        <item name="android:textAppearance">?android:textAppearanceMedium</item>
+        <item name="android:textColor">@android:color/darker_gray</item>
+    </style>
+
+    <style name="detail_label_style">
+        <item name="android:textAppearance">?android:textAppearanceSmall</item>
+        <item name="android:textColor">@android:color/darker_gray</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="detail_value_style">
+        <item name="android:textAppearance">?android:textAppearanceLarge</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="detail_tag_value_style">
+        <item name="android:textAppearance">?android:textAppearanceMedium</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="detail_message_value_style">
+        <item name="android:textAppearance">?android:textAppearanceSmall</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="edit_label_style">
+        <item name="android:textAppearance">?android:textAppearanceSmall</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="edit_edittext_style">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginLeft">8dp</item>
+        <item name="android:layout_marginRight">8dp</item>
+    </style>
+
+    <style name="edit_title_style" parent="edit_edittext_style">
+        <item name="android:contentDescription">@string/content_description_title</item>
+        <item name="android:maxLength">25</item>
+        <item name="android:hint">@string/sample_title</item>
+    </style>
+
+    <style name="edit_tag_style" parent="edit_edittext_style">
+        <item name="android:contentDescription">@string/content_description_tag</item>
+        <item name="android:maxLength">20</item>
+        <item name="android:hint">@string/sample_tag</item>
+    </style>
+
+    <style name="edit_message_style" parent="edit_edittext_style">
+        <item name="android:contentDescription">@string/content_description_message</item>
+        <item name="android:maxLength">200</item>
+        <item name="android:hint">@string/sample_message</item>
+    </style>
+
 </resources>

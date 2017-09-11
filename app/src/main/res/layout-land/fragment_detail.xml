@@ -25,8 +25,7 @@
 
             <TextView
                 android:id="@+id/detail_label_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/detail_label_style"
                 android:layout_marginTop="16dp"
                 android:text="@string/label_title"
                 app:layout_constraintHorizontal_bias="1.0"
@@ -36,8 +35,7 @@
 
             <TextView
                 android:id="@+id/detail_label_tag"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/detail_label_style"
                 android:layout_marginTop="16dp"
                 android:text="@string/label_tag"
                 app:layout_constraintRight_toRightOf="@+id/detail_label_title"
@@ -45,8 +43,7 @@
 
             <TextView
                 android:id="@+id/detail_label_message"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/detail_label_style"
                 android:layout_marginTop="16dp"
                 android:text="@string/label_message"
                 app:layout_constraintRight_toLeftOf="@+id/detail_guideline"
@@ -69,6 +66,7 @@
 
                 <TextView
                     android:id="@+id/message_tv"
+                    style="@style/detail_message_value_style"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     tools:text="@string/sample_message" />
@@ -76,19 +74,17 @@
 
             <TextView
                 android:id="@+id/text_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/detail_value_style"
                 android:layout_marginLeft="8dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="0dp"
+                app:layout_constraintBottom_toBottomOf="@+id/detail_label_title"
                 app:layout_constraintLeft_toLeftOf="@+id/detail_guideline"
-                app:layout_constraintTop_toTopOf="@+id/detail_label_title"
                 tools:text="@string/sample_title" />
 
             <TextView
                 android:id="@+id/text_tag_one"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/detail_value_style"
                 android:layout_marginLeft="8dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="0dp"
@@ -98,8 +94,7 @@
 
             <TextView
                 android:id="@+id/text_tag_two"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/detail_value_style"
                 android:layout_marginLeft="8dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
@@ -109,8 +104,7 @@
 
             <TextView
                 android:id="@+id/text_tag_three"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/detail_value_style"
                 android:layout_marginLeft="8dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
@@ -134,6 +128,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
+                    android:textAppearance="?android:textAppearanceLarge"
+                    android:textColor="@android:color/black"
                     tools:text="@string/empty_recycler_detail_text"/>
 
             </android.support.v7.widget.CardView>

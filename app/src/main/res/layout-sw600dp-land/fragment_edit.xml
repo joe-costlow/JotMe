@@ -32,8 +32,7 @@
 
                 <TextView
                     android:id="@+id/edit_label_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    style="@style/edit_label_style"
                     android:layout_marginTop="48dp"
                     android:text="@string/label_title"
                     app:layout_constraintHorizontal_bias="1.0"
@@ -43,8 +42,7 @@
 
                 <TextView
                     android:id="@+id/edit_label_tag"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    style="@style/edit_label_style"
                     android:layout_marginEnd="0dp"
                     android:layout_marginRight="0dp"
                     android:layout_marginTop="64dp"
@@ -54,8 +52,7 @@
 
                 <TextView
                     android:id="@+id/edit_label_message"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    style="@style/edit_label_style"
                     android:layout_marginEnd="0dp"
                     android:layout_marginRight="0dp"
                     android:layout_marginTop="64dp"
@@ -65,12 +62,9 @@
 
                 <EditText
                     android:id="@+id/edit_edit_title"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    style="@style/edit_title_style"
                     android:layout_marginBottom="0dp"
                     android:layout_marginEnd="8dp"
-                    android:layout_marginLeft="8dp"
-                    android:layout_marginRight="8dp"
                     android:layout_marginStart="8dp"
                     app:layout_constraintBottom_toBottomOf="@+id/edit_label_title"
                     app:layout_constraintHorizontal_bias="0.0"
@@ -81,11 +75,8 @@
 
                 <EditText
                     android:id="@+id/edit_edit_tag_one"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    style="@style/edit_tag_style"
                     android:layout_marginEnd="8dp"
-                    android:layout_marginLeft="8dp"
-                    android:layout_marginRight="8dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="0dp"
                     app:layout_constraintBottom_toBottomOf="@+id/edit_label_tag"
@@ -97,11 +88,8 @@
 
                 <EditText
                     android:id="@+id/edit_edit_tag_two"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    style="@style/edit_tag_style"
                     android:layout_marginEnd="8dp"
-                    android:layout_marginLeft="8dp"
-                    android:layout_marginRight="8dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="24dp"
                     app:layout_constraintHorizontal_bias="0.0"
@@ -112,11 +100,8 @@
 
                 <EditText
                     android:id="@+id/edit_edit_tag_three"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    style="@style/edit_tag_style"
                     android:layout_marginEnd="8dp"
-                    android:layout_marginLeft="8dp"
-                    android:layout_marginRight="8dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="24dp"
                     app:layout_constraintHorizontal_bias="0.0"
@@ -127,17 +112,14 @@
 
                 <EditText
                     android:id="@+id/edit_edit_message"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    style="@style/edit_message_style"
                     android:layout_marginEnd="8dp"
-                    android:layout_marginLeft="8dp"
-                    android:layout_marginRight="8dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="48dp"
                     app:layout_constraintLeft_toLeftOf="@+id/edit_guideline"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/edit_edit_tag_three"
-                    tools:text="This is a sample message" />
+                    tools:text="@string/sample_message" />
 
             </android.support.constraint.ConstraintLayout>
 

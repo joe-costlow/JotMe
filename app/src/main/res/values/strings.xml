@@ -34,8 +34,18 @@
     <string name="toast_signed_in_cancelled">Sign In Cancelled</string>
     <string name="toast_signed_out">Signed Out</string>
 
+    <!-- Content descriptions -->
+    <string name="content_description_title">This is the title for the Jot</string>
+    <string name="content_description_tag">This is a tag for the Jot</string>
+    <string name="content_description_message">This is a message for the Jot</string>
+    <string name="content_description_fab_add">Create a new Jot</string>
+    <string name="content_description_fab_edit">Edit selected Jot</string>
+    <string name="content_description_fab_save">Save changes to Jot</string>
+    <string name="content_description_fab_delete">Delete current Jot</string>
+    <string name="content_description_fab_cancel">Cancel changes to Jot</string>
+
     <!-- Sample texts -->
-    <string name="sample_message">This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text. This is a sample text.</string>
+    <string name="sample_message">This is a sample message.</string>
     <string name="sample_title">This is a sample title</string>
     <string name="sample_tag">Tag</string>
     <string name="appwidget_text">EXAMPLE</string>
