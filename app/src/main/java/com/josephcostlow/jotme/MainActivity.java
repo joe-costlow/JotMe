@@ -322,13 +322,13 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
             Intent intentFromWidget = getIntent();
 
-            clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, 0);
+            int listSize = sharedPreferences.getInt(SHARED_PREFS_ORIGINAL_LIST_SIZE, -1);
+
+            clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, listSize);
 
             if (intentFromWidget != null) {
 
                 if (intentFromWidget.hasExtra("position")) {
-
-                    int listSize = sharedPreferences.getInt(SHARED_PREFS_ORIGINAL_LIST_SIZE, -1);
 
                     int widgetClickPosition = intentFromWidget.getIntExtra("position", 0);
 
@@ -341,7 +341,16 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
                             break;
 
                         case 1:
-                            clickedPosition = listSize - 2;
+
+                            if (listSize > 2) {
+
+                                clickedPosition = listSize - 2;
+
+                            } else {
+
+                                clickedPosition = listSize - 1;
+                            }
+
                             break;
 
                         case 0:

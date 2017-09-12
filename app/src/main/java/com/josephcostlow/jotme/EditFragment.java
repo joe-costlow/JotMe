@@ -43,6 +43,7 @@ public class EditFragment extends Fragment implements TextWatcher {
     OnFABHide mFABHide;
     private OnFragmentInteractionListener mListener;
     private String toolbarTitle, title, tagOne, tagTwo, tagThree, message;
+    private String restoredTitle, restoredTagOne, restoredTagTwo, restoredTagThree, restoredMessage;
 
     public EditFragment() {
         // Required empty public constructor
@@ -135,38 +136,43 @@ public class EditFragment extends Fragment implements TextWatcher {
             }
 
             if (savedInstanceState.containsKey(TITLE_KEY)) {
-                title = savedInstanceState.getString(TITLE_KEY);
+                restoredTitle = savedInstanceState.getString(TITLE_KEY);
             }
 
             if (savedInstanceState.containsKey(TAG_ONE_KEY)) {
-                tagOne = savedInstanceState.getString(TAG_ONE_KEY);
+                restoredTagOne = savedInstanceState.getString(TAG_ONE_KEY);
             }
 
             if (savedInstanceState.containsKey(TAG_TWO_KEY)) {
-                tagTwo = savedInstanceState.getString(TAG_TWO_KEY);
+                restoredTagTwo = savedInstanceState.getString(TAG_TWO_KEY);
             }
 
             if (savedInstanceState.containsKey(TAG_THREE_KEY)) {
-                tagThree = savedInstanceState.getString(TAG_THREE_KEY);
+                restoredTagThree = savedInstanceState.getString(TAG_THREE_KEY);
             }
 
             if (savedInstanceState.containsKey(MESSAGE_KEY)) {
-                message = savedInstanceState.getString(MESSAGE_KEY);
+                restoredMessage = savedInstanceState.getString(MESSAGE_KEY);
             }
-        }
 
-        setEditText(title, tagOne, tagTwo, tagThree, message);
+            setEditText(restoredTitle, restoredTagOne, restoredTagTwo, restoredTagThree, restoredMessage);
+
+        } else {
+
+            setEditText(title, tagOne, tagTwo, tagThree, message);
+        }
 
         // Inflate the layout for this fragment
         return rootView;
     }
 
-    public void setEditText(String title, String tagOne, String tagTwo, String tagThree, String message) {
-        editTitle.setText(title);
-        editTagOne.setText(tagOne);
-        editTagTwo.setText(tagTwo);
-        editTagThree.setText(tagThree);
-        editMessage.setText(message);
+    public void setEditText(String titleSent, String tagOneSent, String tagTwoSent, String tagThreeSent, String messageSent) {
+
+        editTitle.setText(titleSent);
+        editTagOne.setText(tagOneSent);
+        editTagTwo.setText(tagTwoSent);
+        editTagThree.setText(tagThreeSent);
+        editMessage.setText(messageSent);
 
         mEditTitle.EditToolbarText(toolbarTitle);
 
@@ -197,7 +203,7 @@ public class EditFragment extends Fragment implements TextWatcher {
     }
 
     public String[] dataToSave() {
-//        TODO real data needs to include unique post ID
+
         String[] jotToSave = new String[5];
 
         String titleToSave = editTitle.getText().toString();
@@ -250,6 +256,12 @@ public class EditFragment extends Fragment implements TextWatcher {
 
         mFABHide.ExitHideFABEdit();
 
+        editTitle.removeTextChangedListener(this);
+        editTagOne.removeTextChangedListener(this);
+        editTagTwo.removeTextChangedListener(this);
+        editTagThree.removeTextChangedListener(this);
+        editMessage.removeTextChangedListener(this);
+
         super.onPause();
     }
 
@@ -264,6 +276,12 @@ public class EditFragment extends Fragment implements TextWatcher {
         super.onSaveInstanceState(outState);
 
         outState.putString(TOOLBAR_TITLE_KEY, toolbarTitle);
+
+        outState.putString(TITLE_KEY, editTitle.getText().toString());
+        outState.putString(TAG_ONE_KEY, editTagOne.getText().toString());
+        outState.putString(TAG_TWO_KEY, editTagTwo.getText().toString());
+        outState.putString(TAG_THREE_KEY, editTagThree.getText().toString());
+        outState.putString(MESSAGE_KEY, editMessage.getText().toString());
     }
 
     @Override

@@ -200,13 +200,13 @@ public class DetailFragment extends Fragment {
         try {
             mEditTitle = (OnToolbarTitleTextEdit) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + "must implement OnToolbarTitleTextEdit"); //TODO make string
+            throw new ClassCastException(context.toString() + "must implement OnToolbarTitleTextEdit");
         }
 
         try {
             mFABHide = (OnFABHide) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + "must implement OnFABHide");  //TODO make string
+            throw new ClassCastException(context.toString() + "must implement OnFABHide");
         }
     }
 
