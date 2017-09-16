@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "847671722017-1gdugfq52dh9sapg2tjeqnedomr245bo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.josephcostlow.jotme",
+            "certificate_hash": "22f3c21c176877672972fdb7e4f59b6ee10ce21c"
+          }
+        },
+        {
           "client_id": "847671722017-fra8lpvve66p53rlrvk2rnbnc2d3ijfp.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

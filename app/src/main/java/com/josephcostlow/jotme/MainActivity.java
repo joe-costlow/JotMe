@@ -379,9 +379,16 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
 
             Intent intentFromWidget = getIntent();
 
-            int listSize = sharedPreferences.getInt(SHARED_PREFS_ORIGINAL_LIST_SIZE, -1);
+            int listSize = sharedPreferences.getInt(SHARED_PREFS_ORIGINAL_LIST_SIZE, 0);
 
-            clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, listSize);
+            if (listSize == 0) {
+
+                clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, 1000);
+
+            } else {
+
+                clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, listSize);
+            }
 
             if (intentFromWidget != null) {
 
