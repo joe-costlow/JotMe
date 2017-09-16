@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements
         EditFragment.OnToolbarTitleTextEdit,
         EditFragment.OnFABHide {
 
+
 //    constants for fragment tags
     public static final String RETAINED_LIST_FRAGMENT = "retainedListFragment";
     public static final String RETAINED_DETAIL_FRAGMENT = "retainedDetailFragment";
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements
     public static final String INITIAL_LIST_FRAGMENT = "initialListFragment";
     public static final String INITIAL_DETAIL_FRAGMENT = "initialDetailFragment";
     public static final String INITIAL_EDIT_FRAGMENT = "initialEditFragment";
+
 
 //    constants for saving state
 public static final String TOOLBAR_TITLE = "toolbarTitleKey";
@@ -57,35 +59,45 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
     public static final String SHARED_PREFS_AUTO_SELECT_KEY = "autoSelector";
     public static final String SHARED_PREFS_CLICKED_POSITION_KEY = "clickedPosition";
     public static final String SHARED_PREFS_EMPTY_RECYCLER_KEY = "emptyRecycler";
-    public static final String SHARED_PREFS_SAVE_FAB_VISIBLE = "saveFABVisible";
     public static final String SHARED_PREFS_ORIGINAL_LIST_SIZE = "originalListSize";
     public static final String SHARED_PREFS_WIDGET_INTENT = "widgetIntent";
     public static final int RC_SIGN_IN = 1;
     private static final String ACTION_DATA_UPDATED = "android.appwidget.action.ACTION_DATA_UPDATED";
     public static SharedPreferences sharedPreferences;
     public static boolean mSearchMode;
-//    constants for auto-select and clicked positions for List Fragment and List Adapter
+
+    //    Fragments
     public ListFragment listFragment;
     public DetailFragment detailFragment;
     public EditFragment editFragment;
+
     //    misc
+    boolean mDualPane;
+    //    Toolbar
     Toolbar mainToolbar;
     TextView mainToolbarTitle;
-    boolean mDualPane;
-    FloatingActionButton addFAB, cancelFAB, saveFAB, editFAB, deleteFAB;
     SearchView searchView;
     MenuItem menuSearch;
     MenuItem menuSignOut;
+    //    Floating Action Buttons
+    FloatingActionButton addFAB, cancelFAB, saveFAB, editFAB, deleteFAB;
+    //    Firebase
     FirebaseAuth mFirebaseAuth;
     FirebaseUser user;
+    private boolean widgetIntent;
     private int clickedPosition;
     private boolean recyclerIsEmpty;
     private boolean emptyInstance;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
     private FirebaseJobDispatcher dispatcher;
     private Job reminderNotificationJob;
-    private boolean widgetIntent;
 
+    /**
+     * Method executed when the toolbar menu is created
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
@@ -106,6 +118,22 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         return true;
     }
 
+    /**
+     * This method is executed when the toolbar menu is created and each time it is accessed.
+     * <p>
+     * The sign out icon is made visible, then based on screen size (mDualPane), the sign out icon
+     * visibility is determined. In single pane, the sign out icon is visible only on the list
+     * screen. In dual pane, if an instance of EditFragment is visible, sign out is not visible.
+     * <p>
+     * The search icon has a click and close listener. When the search icon is clicked, the list
+     * is populated using another adapter, search mode is set to true, to hide FABs, and the sign
+     * out icon is hidden. Also, in single pane, the custom TextView title is hidden, to make room
+     * for the search bar. When the search icon is closed, the sign out icon and title TextView are
+     * made visible and search mode is made false.
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
 
@@ -177,6 +205,17 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         return super.onPrepareOptionsMenu(menu);
     }
 
+    /**
+     * This method is executed when a menu item is clicked
+     *
+     * When the home button is pressed, the onBackPressed method is called.
+     *
+     * When the sign out icon is clicked, the authenticated user (Firebase) is signed out and all
+     * shared preferences are cleared.
+     *
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
@@ -202,6 +241,15 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * This method sets initializes the FABs and toolbar. Any retained fragments are recovered.
+     * If in dual pane, an instance of ListFragment is put on the left side and an instance of
+     * DetailFragment is put on the right side. In single pane, an instance of ListFragment is put
+     * full screen. First, an authentication change listener is used to determine if there is a
+     * current authenticated user already signed in (Firebase).
+     *
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -316,6 +364,15 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         };
     }
 
+    /**
+     * This method is used to launch the appropriate fragments based on screen size, single or dual
+     * pane.
+     *
+     * Also, the intent to launch this activity is checked to determine if the intent was from the
+     * home screen widget. If so, the selected position is adjusted to display the correct list item
+     * in the main list.
+     *
+     */
     public void launchFragments() {
 
         if (emptyInstance) {
@@ -393,6 +450,12 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         }
     }
 
+    /**
+     * This method creates the Job used to send reminder notifications on the device.
+     *
+     * @param jobDispatcher initialized in onCreate (@dispatcher)
+     * @return
+     */
     public Job createReminderNotificationJob(FirebaseJobDispatcher jobDispatcher) {
 
         Job job = jobDispatcher.newJobBuilder()
@@ -407,6 +470,13 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         return job;
     }
 
+    /**
+     * This method is executed when the sign in activity is returned.
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -425,6 +495,33 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         }
     }
 
+    /**
+     * This method is executed when a FAB is clicked.
+     *
+     * Add FAB:
+     *      The toolbar title is changed. Blank values are sent to a new EditFragment instance and
+     *      that instance is put on the screen. In dual pane, it is placed on the right side. In
+     *      single pane, it is full screen.
+     *
+     * Edit FAB:
+     *      The toolbar title is changed. Values of the currently displayed Jot in the existing
+     *      instance of DetailFragment are aggregated and sent to a new instance of EditFragment.
+     *      This instance is then displayed on the screen.
+     *
+     * Cancel FAB:
+     *      If dual pane is being used, the existing instance of DetailFragment replaces EditFragment.
+     *      If single pane, onBackPressed method is executed.
+     *
+     * Save FAB:
+     *      Values of the edittexts from the existing EditFragment are aggregated and sent to either
+     *      addJot or editJot method in the existing ListFragment instance. A new instance of
+     *      DetailFragment replaces EditFragment instance on screen.
+     *
+     * Delete FAB:
+     *      The position of the current Jot is sent to ListFragment.deleteJot method.
+     *
+     * @param v
+     */
     @Override
     public void onClick(View v) {
 
@@ -654,6 +751,15 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         }
     }
 
+    /**
+     * Method executed when back button is pressed on device or back arrow in toolbar.
+     *
+     * In dual pane, if an instance of EditFragment is not null and visible, the existing instance
+     * of DetailFragment replaces EditFragment. If an instance of DetailFragment is not null and
+     * visible, the app finishes. In single pane, if an instance of ListFragment is not null and
+     * visible, the app finishes. In other cases, the super.onBackPressed method is executed.
+     *
+     */
     @Override
     public void onBackPressed() {
 
@@ -692,6 +798,15 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         }
     }
 
+    /**
+     * Method implemented by interface of ListFragment. Directs to RecyclerItemClick method.
+     *
+     * @param title title of selected Jot
+     * @param tagOne first tag of selected Jot
+     * @param tagTwo second tag of selected Jot
+     * @param tagThree third tag of selected Jot
+     * @param message message of selected Jot
+     */
     @Override
     public void OnListItemClick(String title, String tagOne, String tagTwo, String tagThree, String message) {
 
@@ -725,6 +840,13 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         mainToolbarTitle.setText(title);
     }
 
+    /**
+     * Method is executed when a new instance of ListFragment is created.
+     *
+     * All FABs are initially hidden. If the user is not utilizing the search feature, the Add FAB
+     * is made visible. In dual pane, the Edit FAB is also made visible, unless there are no items
+     * in the list.
+     */
     @Override
     public void EnterHideFABList() {
         HideAllFABs();
@@ -756,6 +878,13 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         HideEditFAB();
     }
 
+    /**
+     * This method is executed when a new instance of DetailFragment is created.
+     *
+     * All FABs are initially hidden. If the user is not utilizing the search feature, the Edit FAB
+     * is made visible, unless there are no items in the list.
+     * In dual pane, the Add FAB is also made visible. In single pane, the Delete FAB, is made visible.
+     */
     @Override
     public void EnterHideFABDetail() {
         HideAllFABs();
@@ -794,6 +923,11 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         ShowCancelFAB();
     }
 
+    /**
+     * Method is executed when leaving EditFragment instance.
+     *
+     * If there are no items in the list, Edit FAB is hidden. ResetFABs method is then executed.
+     */
     @Override
     public void ExitHideFABEdit() {
 
@@ -864,6 +998,18 @@ public static final String TOOLBAR_TITLE = "toolbarTitleKey";
         saveFAB.setVisibility(View.GONE);
     }
 
+    /**
+     * This method is executed during onRestart method, after authentication of user (Firebase),
+     * and after exiting an instance of EditFragment.
+     *
+     * In dual pane, if an instance of ListFragment is not null and visible, all FABs are initally
+     * hidden. Add and Edit FABs are made visible, unless there are no items in the list, then Edit
+     * FAB is hidden. If an instance of EditFragment is not null and visible, all FABs are hidden
+     * and only Cancel FAB is made visible.
+     *
+     * In single pane, all FABs are initially hidden. Appropriate FABs are made visible based on
+     * which fragment is not null and visible.
+     */
     public void ResetFABs() {
 
         listFragment = (ListFragment) getSupportFragmentManager()

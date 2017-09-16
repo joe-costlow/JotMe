@@ -16,6 +16,8 @@ import com.firebase.jobdispatcher.JobService;
 
 public class ReminderNotificationJob extends JobService {
 
+//    Create a notification, when clicked, launches the app.
+
     @Override
     public boolean onStartJob(JobParameters job) {
 

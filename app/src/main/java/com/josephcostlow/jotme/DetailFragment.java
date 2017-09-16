@@ -36,15 +36,8 @@ public class DetailFragment extends Fragment {
     SharedPreferences sharedPreferences;
     OnToolbarTitleTextEdit mEditTitle;
     OnFABHide mFABHide;
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-//    private static final String ARG_PARAM1 = "param1";
-//    private static final String ARG_PARAM2 = "param2";
     private String SHARED_PREFS_FILENAME = MainActivity.SHARED_PREFS_FILENAME;
     private String SHARED_PREFS_EMPTY_RECYCLER_KEY = MainActivity.SHARED_PREFS_EMPTY_RECYCLER_KEY;
-    // TODO: Rename and change types of parameters
-//    private String mParam1;
-//    private String mParam2;
     private OnFragmentInteractionListener mListener;
     private String title, tagOne, tagTwo, tagThree, message;
     private boolean recyclerIsEmpty;
@@ -55,14 +48,13 @@ public class DetailFragment extends Fragment {
     }
 
     /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param
-     * @param
-     * @return A new instance of fragment DetailFragment.
+     * @param title title of the current Jot
+     * @param tagOne first tag of the current Jot
+     * @param tagTwo second tag of the current Jot
+     * @param tagThree third tag of the current Jot
+     * @param message message of the current Jot
+     * @return Fragment
      */
-    // TODO: Rename and change types and number of parameters
     public static DetailFragment newInstance(String title, String tagOne, String tagTwo, String tagThree, String message) {
         DetailFragment fragment = new DetailFragment();
         Bundle args = new Bundle();
@@ -160,6 +152,13 @@ public class DetailFragment extends Fragment {
         textMessage.setText(message);
     }
 
+    /**
+     * This method is executed upon refresh of data to Firebase Database.
+     * <p>
+     * If the recyclerview in the ListFragment instance is empty, a message is shown indicating this.
+     * If in dual pane, the app name remains as the text in the textview of the toolbar. In single
+     * pane, the textview text is changed to 'Detail'.
+     */
     public void UpdateUIDetail() {
 
         sharedPreferences = this.getActivity().getSharedPreferences(SHARED_PREFS_FILENAME, 0);
@@ -180,7 +179,6 @@ public class DetailFragment extends Fragment {
         mFABHide.EnterHideFABDetail();
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -190,12 +188,6 @@ public class DetailFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-//        if (context instanceof OnFragmentInteractionListener) {
-//            mListener = (OnFragmentInteractionListener) context;
-//        } else {
-//            throw new RuntimeException(context.toString()
-//                    + " must implement OnFragmentInteractionListener");
-//        }
 
         try {
             mEditTitle = (OnToolbarTitleTextEdit) context;
@@ -257,6 +249,12 @@ public class DetailFragment extends Fragment {
 
     }
 
+    /**
+     * This method is executed during the onClick method of MainActivity for the Edit FAB.
+     *
+     * @return a string array to the onClick method in MainActivity for the Edit FAB. The array is
+     * the data of the currently selected Jot being displayed.
+     */
     public String[] DataForEdit() {
 
         String[] currentJot = new String[5];
@@ -270,11 +268,19 @@ public class DetailFragment extends Fragment {
         return currentJot;
     }
 
+    /**
+     * Interface is implemented upon creation of a new instance of DetailFragment and when exiting.
+     * This interface is used to control the visibility of the proper FABs to be displayed.
+     */
     public interface OnFABHide {
         void EnterHideFABDetail();
         void ExitHideFABDetail();
     }
 
+    /**
+     * Interface is implemented to edit the text of the textview of the toolbar to reflect that the
+     * user is showing the details of a selected Jot.
+     */
     public interface OnToolbarTitleTextEdit {
         void EditToolbarText(String title);
     }
@@ -290,7 +296,7 @@ public class DetailFragment extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
+
         void onFragmentInteraction(Uri uri);
     }
 }

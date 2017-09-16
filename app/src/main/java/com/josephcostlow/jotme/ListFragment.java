@@ -44,8 +44,6 @@ import java.util.List;
 public class ListFragment extends Fragment implements JotAdapter.ClickListener {
     public static final String ANONYMOUS = "anonymous";
     public static final int RC_SIGN_IN = 1;
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final String ACTION_DATA_UPDATED = "android.appwidget.action.ACTION_DATA_UPDATED";
@@ -57,43 +55,45 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
     CardView emptyRecyclerCard;
     TextView emptyView;
     int emptyClickedPosition = 0;
-    //    private FirebaseRecyclerAdapter<Jot, JotViewHolder> mFirebaseAdapter;
     ItemClickListener itemClickListener;
     SearchView searchView;
     MenuItem menuSearch;
     private boolean autoSelector;
     private int clickedPosition;
     private boolean recyclerIsEmpty;
-    private OnItemClick mOnClickListener;
-    private OnFABHide mFABHide;
-    private OnToolbarTitleTextEdit mEditTitle;
-    private OnDataUpdate mDataUpdate;
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
     private OnFragmentInteractionListener mListener;
     private boolean mDualPane;
+    private ItemTouchHelper itemTouchHelper;
+    private boolean mSearchMode;
+    private String mUserID;
+    private FilteredAdapter mFilteredAdapter;
+    private List<Jot> originalJotList;
+    private boolean widgetIntent;
+    //    Shared Preferences
     private String SHARED_PREFS_FILENAME = MainActivity.SHARED_PREFS_FILENAME;
     private String SHARED_PREFS_AUTO_SELECT_KEY = MainActivity.SHARED_PREFS_AUTO_SELECT_KEY;
     private String SHARED_PREFS_CLICKED_POSITION_KEY = MainActivity.SHARED_PREFS_CLICKED_POSITION_KEY;
     private String SHARED_PREFS_EMPTY_RECYCLER_KEY = MainActivity.SHARED_PREFS_EMPTY_RECYCLER_KEY;
     private String SHARED_PREFS_ORIGINAL_LIST_SIZE = MainActivity.SHARED_PREFS_ORIGINAL_LIST_SIZE;
     private String SHARED_PREFS_WIDGET_INTENT = MainActivity.SHARED_PREFS_WIDGET_INTENT;
-    private ItemTouchHelper itemTouchHelper;
-    private boolean mSearchMode;
+    //    Firebase
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseAuth.AuthStateListener mAuthStateListener;
+    private FirebaseUser mUser;
     private FirebaseDatabase mJotsDatabase;
     private DatabaseReference mJotsDatabaseReference;
     private DatabaseReference mJotsDatabaseUsersReference;
     private DatabaseReference mJotsDatabaseSpecificUserReference;
     private ChildEventListener mChildEventListener;
     private String mUsername;
-    private FirebaseAuth mFirebaseAuth;
-    private FirebaseAuth.AuthStateListener mAuthStateListener;
-    private FirebaseUser mUser;
-    private String mUserID;
-    private FilteredAdapter mFilteredAdapter;
-    private List<Jot> originalJotList;
-    private boolean widgetIntent;
+
+    //    Interfaces
+    private OnItemClick mOnClickListener;
+    private OnFABHide mFABHide;
+    private OnToolbarTitleTextEdit mEditTitle;
+    private OnDataUpdate mDataUpdate;
 
     public ListFragment() {
         // Required empty public constructor
@@ -107,7 +107,7 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
      * @param param2 Parameter 2.
      * @return A new instance of fragment ListFragment.
      */
-    // TODO: Rename and change types and number of parameters
+
     public static ListFragment newInstance(String param1, String param2) {
         ListFragment fragment = new ListFragment();
         Bundle args = new Bundle();
@@ -137,6 +137,8 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
         menuSearch = menu.findItem(R.id.menu_search);
         searchView = (SearchView) menuItem.getActionView();
 
+//        If the list of Jots is not empty, make search feature icon visible. If the list is empty,
+//        hide the search feature icon.
         if (jotsData.size() != 0) {
 
             menuSearch.setVisible(true);
@@ -165,9 +167,10 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-
-                List<Jot> newList = new ArrayList<>(); //TODO ArrayList to List
-
+//                Create a new list to serve as the filtered list of Jots
+                List<Jot> newList = new ArrayList<>();
+//                Get the values of the tags for each Jot of the original list. If the second or
+//                third tags are the default value, set their value to empty, so they are not included.
                 for (Jot jot : originalJotList) {
 
                     String searchTagOne = jot.getTagOne();
@@ -183,7 +186,7 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
 
                         searchTagThree = "";
                     }
-
+//                    If the tags contain the value of the search, add the Jot to the filtered list
                     if (searchTagOne.contains(newText)
                             || searchTagTwo.contains(newText)
                             || searchTagThree.contains(newText)) {
@@ -192,7 +195,11 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
                 }
 
                 clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, mAdapter.getItemCount() - 1);
-
+//                Iterate through each Jot in the filtered list, find the corresponding position of
+//                the currently selected Jot in the original list. When a list is filtered, each item
+//                in the filtered list is given an adapter position of the filtered list. This is used
+//                to find the adapter position of the currently selected list item within the filtered
+//                list.
                 int position = -1;
 
                 for (Jot filteredJot : originalJotList) {
@@ -208,6 +215,8 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
                     }
                 }
 
+//                If there is a value in the search feature edittext, set a new adapter to the
+//                recycler, to allow for the filtering of the list.
                 if (!newText.isEmpty()) {
 
                     jotsData = newList;
@@ -220,7 +229,9 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
                     }
 
                 } else {
-
+//                    If the search feature is activated, but the search edittext is empty, set a new
+//                    adapter to the recycler, using the original list. Use the adjusted position
+//                    to display the details of the currently selected Jot.
                     jotsData = originalJotList;
                     mFilteredAdapter = new FilteredAdapter(context, originalJotList, ListFragment.this);
                     recyclerView.setAdapter(mFilteredAdapter);
@@ -276,10 +287,10 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
         mJotsDatabaseSpecificUserReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-
+//                On data change, send a broadcase to the widget to update
                 Intent intentToWidget = new Intent(ACTION_DATA_UPDATED);
                 context.sendBroadcast(intentToWidget);
-
+//                Populate the list used to populate the recycler, using the snapshot data
                 populateLocalList(dataSnapshot);
 
                 mDataUpdate.UIUpdate();
@@ -288,7 +299,8 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
 
                     setupAdapter();
                 }
-
+//                If the snapshot of the user's node has children, make the search feature icon visible,
+//                hide if there are no children.
                 if (dataSnapshot.hasChildren()) {
 
                     if (searchView != null) {
@@ -318,7 +330,6 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
         return rootView;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -328,35 +339,29 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-//        if (context instanceof OnFragmentInteractionListener) {
-//            mListener = (OnFragmentInteractionListener) context;
-//        } else {
-//            throw new RuntimeException(context.toString()
-//                    + " must implement OnFragmentInteractionListener");
-//        }
 
         try {
             mEditTitle = (OnToolbarTitleTextEdit) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + "must implement OnToolbarTitleTextEdit"); //TODO make string
+            throw new ClassCastException(context.toString() + "must implement OnToolbarTitleTextEdit");
         }
 
         try {
             mOnClickListener = (OnItemClick) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + "must implement OnItemClick");    //TODO make string
+            throw new ClassCastException(context.toString() + "must implement OnItemClick");
         }
 
         try {
             mFABHide = (OnFABHide) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + "must implement OnFABHide");  //TODO make string
+            throw new ClassCastException(context.toString() + "must implement OnFABHide");
         }
 
         try {
             mDataUpdate = (OnDataUpdate) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + "must implement OnDataUpdate");  //TODO make string
+            throw new ClassCastException(context.toString() + "must implement OnDataUpdate");
         }
     }
 
@@ -366,6 +371,10 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
         mListener = null;
     }
 
+    /**
+     * Method is used to set up Firebase Database with a reference to a specific authenticated user's
+     * node.
+     */
     public void setupFirebase() {
 
         mJotsDatabase = FirebaseDatabase.getInstance();
@@ -385,38 +394,39 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
 
         recyclerIsEmpty = sharedPreferences.getBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, true);
         widgetIntent = sharedPreferences.getBoolean(SHARED_PREFS_WIDGET_INTENT, false);
-
+//        If the current adapeter of the recycler is empty, hide the recycler and show the empty view
         if (recyclerView.getAdapter().getItemCount() == 0) {
 
             recyclerIsEmpty = true;
             HideRecycler();
 
         } else {
-
+//            If the current adapter of the recycler is not empty, show the recycler.
             recyclerIsEmpty = false;
             ShowRecycler();
 
             clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, mAdapter.getItemCount() - 1);
 
             if (mDualPane) {
-
+//                Adjust the selected position if the selected position is equal to or greater than the
+//                size of the list.
                 if (clickedPosition > recyclerView.getAdapter().getItemCount() - 1) {
                     clickedPosition = recyclerView.getAdapter().getItemCount() - 1;
                 }
-
+//                Try to smooth scroll the recycler to the selected position.
                 try {
                     recyclerView.smoothScrollToPosition(clickedPosition);
                 } catch (Exception e) {
-//                    clickedPosition = recyclerView.getAdapter().getItemCount() - 1;
                     Log.v("UPDATE ERROR", e.toString());
                 }
-
+//                Display the details of the selected Jot in the DetailFragment instance.
                 if (!jotsData.isEmpty()) {
                     publicOnClick(clickedPosition);
                 }
 
             } else {
-
+//                If the intent to the MainActivity was from the widget, and single pane is used,
+//                details of the selected item will be displayed.
                 if (widgetIntent) {
                     widgetIntent = false;
                     publicOnClick(clickedPosition);
@@ -431,6 +441,11 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
         editor.apply();
     }
 
+    /**
+     * Method is used to populate two Lists with data from Firebase Database.
+     *
+     * @param dataSnapshot snapshot of data from the user's node
+     */
     public void populateLocalList(DataSnapshot dataSnapshot) {
 
         originalJotList = new ArrayList<>();
@@ -441,8 +456,6 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
 
             Jot jot = new Jot();
 
-//            TODO DON'T CHANGE, WORKS TO POPULATE ARRAYLIST - START
-
             jot.setTitle(ds.getValue(Jot.class).getTitle());
             jot.setTagOne(ds.getValue(Jot.class).getTagOne());
             jot.setTagTwo(ds.getValue(Jot.class).getTagTwo());
@@ -451,7 +464,7 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
             jot.setUniqueID(ds.getValue(Jot.class).getUniqueID());
 
             jotsData.add(jot);
-//            TODO DON'T CHANGE, WORKS TO POPULATE ARRAYLIST - END - 10 LINES
+
             originalJotList.add(jot);
         }
 
@@ -474,6 +487,13 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
         recyclerView.setAdapter(mFilteredAdapter);
     }
 
+    /**
+     * Method is used to attach an ItemTouchHelper to list items, allowing for swipe to delete function.
+     * <p>
+     * If the user is not in search mode and not editing an existing Jot or adding a new Jot, swipe
+     * to delete function is available. If editing, adding, or searching, swipe to delete function
+     * is unavailable.
+     */
     public void attachItemTouchHelper() {
 
         ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
@@ -548,16 +568,24 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
         emptyView.setText(R.string.empty_recycler_text);
     }
 
+    /**
+     * Method is executed when Save FAB is clicked, if the EditFragment instance has set the title
+     * textview of the toolbar to reflect a new Jot.
+     *
+     * @param title title of the added Jot
+     * @param tagOne first tag of the added Jot
+     * @param tagTwo second tag of the added Jot
+     * @param tagThree third tag of the added Jot
+     * @param message message of the added Jot
+     */
     public void addJot(String title, String tagOne, String tagTwo, String tagThree, String message) {
-
-        //TODO works to add new Jot - start
-
+//        Unique push ID of the data within the database
         String id = mJotsDatabaseReference.push().getKey();
 
         Jot jotToSave = new Jot(title, tagOne, tagTwo, tagThree, message, id);
-
+//        Add the Jot to the list in the recycler
         jotsData.add(jotToSave);
-
+//        Set the value of the unique ID of the Jot to the unique push ID within the database
         mJotsDatabaseSpecificUserReference.child(id).setValue(jotToSave);
 
         clickedPosition = jotsData.size();
@@ -568,15 +596,24 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
         editor.putInt(SHARED_PREFS_CLICKED_POSITION_KEY, clickedPosition);
         editor.putBoolean(SHARED_PREFS_EMPTY_RECYCLER_KEY, recyclerIsEmpty);
         editor.apply();
-        //TODO works to add new Jot - end
     }
 
+    /**
+     * Method is executed when the Save FAB is clicked, if the EditFragment instance has set the title
+     * textview of the toolbar to reflect an edited Jot.
+     *
+     * @param title title of the edited Jot
+     * @param tagOne first tag of the edited Jot
+     * @param tagTwo second tag of the edited Jot
+     * @param tagThree third tag of the edited Jot
+     * @param message message of the edited Jot
+     */
     public void editJot(String title, String tagOne, String tagTwo, String tagThree, String message) {
 
         clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, jotsData.size() - 1);
-
+//        Get the unique ID of the list item currently selected and edited
         String uniqueID = jotsData.get(clickedPosition).getUniqueID();
-
+//        Set data of Jot to respective values
         Jot jot = new Jot();
 
         jot.setTitle(title);
@@ -585,14 +622,20 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
         jot.setTagThree(tagThree);
         jot.setMessage(message);
         jot.setUniqueID(uniqueID);
-
+//        Set the values to the specific push ID (Jot) of the user's node
         mJotsDatabaseSpecificUserReference.child(uniqueID).setValue(jot);
     }
 
+    /**
+     * Method is executed when list item is swiped or when Delete FAB is clicked.
+     *
+     * @param position adapter position of list item to be deleted
+     */
     public void deleteJot(int position) {
 
         clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, jotsData.size() - 1);
-
+//        If the swiped position is higher in the list than the currently selected position, adjust
+//        the selected position to one position higher in the list
         if (position < clickedPosition) {
 
             SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -602,7 +645,8 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
         }
 
         clickedPosition = sharedPreferences.getInt(SHARED_PREFS_CLICKED_POSITION_KEY, jotsData.size() - 1);
-
+//        Remove the Jot from the database if there is not an instance of EditFragment visible or not
+//        using the search feature
         if (mDualPane) {
 
             Fragment testFragment = ((MainActivity) context).getSupportFragmentManager().findFragmentById(R.id.frame_right);
@@ -643,11 +687,16 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
         }
     }
 
+    /**
+     * Method is executed to display the details of a selected Jot.
+     *
+     * @param position adapter position of selected Jot from main list or widget list
+     */
     @Override
     public void publicOnClick(int position) {
 
         if (mDualPane) {
-
+//            If an instance of EditFragment is visible, disable clicking and detail viewing of Jot
             Fragment testFragment = ((MainActivity) context).getSupportFragmentManager().findFragmentById(R.id.frame_right);
 
             if (!(testFragment instanceof EditFragment)) {
@@ -715,7 +764,7 @@ public class ListFragment extends Fragment implements JotAdapter.ClickListener {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
+
         void onFragmentInteraction(Uri uri);
     }
 }

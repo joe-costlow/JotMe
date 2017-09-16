@@ -28,15 +28,8 @@ public class EditFragment extends Fragment implements TextWatcher {
     private static final String TITLE_KEY = MainActivity.TITLE_KEY;
     private static final String TAG_ONE_KEY = MainActivity.TAG_ONE_KEY;
     private static final String TAG_TWO_KEY = MainActivity.TAG_TWO_KEY;
-    // TODO: Rename and change types of parameters
-//    private String mParam1;
-//    private String mParam2;
     private static final String TAG_THREE_KEY = MainActivity.TAG_THREE_KEY;
     private static final String MESSAGE_KEY = MainActivity.MESSAGE_KEY;
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-//    private static final String ARG_PARAM1 = "param1";
-//    private static final String ARG_PARAM2 = "param2";
     TextView labelTitle, labelTags, labelMessage;
     EditText editTitle, editTagOne, editTagTwo, editTagThree, editMessage;
     OnToolbarTitleTextEdit mEditTitle;
@@ -50,14 +43,14 @@ public class EditFragment extends Fragment implements TextWatcher {
     }
 
     /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param /param1 Parameter 1.
-     * @param /param2 Parameter 2.
-     * @return A new instance of fragment EditFragment.
+     * @param toolbarTitle current text of toolbar textview (Edit Jot or Add Jot
+     * @param title title of current Jot
+     * @param tagOne first tag of current Jot
+     * @param tagTwo second tag of current Jot
+     * @param tagThree third tag of current Jot
+     * @param message message of current Jot
+     * @return Fragment
      */
-    // TODO: Rename and change types and number of parameters
     public static EditFragment newInstance(String toolbarTitle, String title, String tagOne, String tagTwo, String tagThree, String message) {
         EditFragment fragment = new EditFragment();
         Bundle args = new Bundle();
@@ -90,6 +83,11 @@ public class EditFragment extends Fragment implements TextWatcher {
         setHasOptionsMenu(true);
     }
 
+    /**
+     * Hide the toolbar icons for the search feature and sign out feature.
+     *
+     * @param menu
+     */
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
 
@@ -179,6 +177,9 @@ public class EditFragment extends Fragment implements TextWatcher {
         setHints();
     }
 
+    /**
+     * Set the hints for the edittexts.
+     */
     private void setHints() {
 
         if (editTitle.getText().length() == 0) {
@@ -202,6 +203,11 @@ public class EditFragment extends Fragment implements TextWatcher {
         }
     }
 
+    /**
+     * The text from the edittexts are put into a string array.
+     *
+     * @return string array to the onClick method in MainActivity for the Save FAB.
+     */
     public String[] dataToSave() {
 
         String[] jotToSave = new String[5];
@@ -221,7 +227,6 @@ public class EditFragment extends Fragment implements TextWatcher {
         return jotToSave;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -231,12 +236,6 @@ public class EditFragment extends Fragment implements TextWatcher {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-//        if (context instanceof OnFragmentInteractionListener) {
-//            mListener = (OnFragmentInteractionListener) context;
-//        } else {
-//            throw new RuntimeException(context.toString()
-//                    + " must implement OnFragmentInteractionListener");
-//        }
 
         try {
             mEditTitle = (OnToolbarTitleTextEdit) context;
@@ -306,13 +305,16 @@ public class EditFragment extends Fragment implements TextWatcher {
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
 
+//        When the first tag edittext is empty, the second and third tag edittexts are disabled.
         if (editTagOne.getText().toString().isEmpty()) {
 
             editTagTwo.setEnabled(false);
             editTagThree.setEnabled(false);
 
         } else {
-
+//            If the first tag edittext is equal to the default value, the second tag edittext is
+//            disabled and the Save FAB is hidden. If the first tag edittext is not empty or equal
+//            to the default value, the second tag edittext is enabled and the Save FAB is visible.
             if (editTagOne.getText().toString().equals(getResources().getString(R.string.empty_tag_edit))) {
 
                 editTagTwo.setEnabled(false);
@@ -326,12 +328,14 @@ public class EditFragment extends Fragment implements TextWatcher {
             }
         }
 
+//        If the second tag edittext is empty, the third tag edittext is disabled.
         if (editTagTwo.getText().toString().isEmpty()) {
 
             editTagThree.setEnabled(false);
 
         } else {
-
+//            If the second tag edittext is equal to the default value, the third tage edittext is
+//            disabled.
             if (editTagTwo.getText().toString().equals(getResources().getString(R.string.empty_tag_edit))) {
 
                 editTagThree.setEnabled(false);
@@ -342,6 +346,7 @@ public class EditFragment extends Fragment implements TextWatcher {
             }
         }
 
+//        If all of the edittexts equal their original values, the Save FAB is hidden.
         if (editTitle.getText().toString().equals(title)) {
 
             if (editTagOne.getText().toString().equals(tagOne)) {
@@ -359,20 +364,30 @@ public class EditFragment extends Fragment implements TextWatcher {
         }
     }
 
+    /**
+     * This method is used to set a value to each edittext. Also, it provides a way to have consecutive
+     * tags. For example, if two tags are provided, the values will be set to the first and second tag
+     * edittext.
+     *
+     * @param s
+     */
     @Override
     public void afterTextChanged(Editable s) {
 
+//        If the title edittext is empty, the default value is set to the edittext.
         if (editTitle.getText().toString().isEmpty()) {
 
             editTitle.setText(getResources().getString(R.string.empty_title_edit));
             editTitle.selectAll();
         }
 
+//        If the first tag edittext is empty, its value is set to the default value.
         if (editTagOne.getText().toString().isEmpty()) {
 
             editTagOne.setText(getResources().getString(R.string.empty_tag_edit));
             editTagOne.selectAll();
-
+//            If the second tag edittext value is not empty, its current value is set to the first tag
+//            edittext and the second tag edittext value is cleared.
             if (!editTagTwo.getText().toString().isEmpty()) {
 
                 editTagOne.setText(editTagTwo.getText().toString());
@@ -381,11 +396,13 @@ public class EditFragment extends Fragment implements TextWatcher {
             }
         }
 
+//        If the second tag edittext value is empty, its value is set to the default value.
         if (editTagTwo.getText().toString().isEmpty()) {
 
             editTagTwo.setText(getResources().getString(R.string.empty_tag_edit));
             editTagTwo.selectAll();
-
+//            If the third tag edittext value is not empty, its current value is set to the second tag
+//            edittext and the third tag edittext value is cleared.
             if (!editTagThree.getText().toString().isEmpty()) {
 
                 editTagTwo.setText(editTagThree.getText().toString());
@@ -394,12 +411,14 @@ public class EditFragment extends Fragment implements TextWatcher {
             }
         }
 
+//        If the third tag edittext is empty, its value is set to the default value.
         if (editTagThree.getText().toString().isEmpty()) {
 
             editTagThree.setText(getResources().getString(R.string.empty_tag_edit));
             editTagThree.selectAll();
         }
 
+//        If the message edittext is empty, its value is set to the default value.
         if (editMessage.getText().toString().isEmpty()) {
 
             editMessage.setText(getResources().getString(R.string.empty_message_edit));

@@ -51,6 +51,8 @@ public class WidgetListRemoteViewsFactory implements RemoteViewsService.RemoteVi
         mFirebaseAuth = FirebaseAuth.getInstance();
         mUser = mFirebaseAuth.getCurrentUser();
 
+//        If an aunthenticated user is signed in, a value event listener is set to the latest three
+//        Jots of their node.
         if (mUser != null) {
 
             mUserID = mUser.getUid();
@@ -76,6 +78,13 @@ public class WidgetListRemoteViewsFactory implements RemoteViewsService.RemoteVi
         }
     }
 
+    /**
+     * Method is executed when a widget is created and when the data has changed.
+     * <p>
+     * The data is parsed into single Jots and added to a List to be displayed in the widget.
+     *
+     * @param dataSnapshot snapshot of data within the current user's Jot list
+     */
     private void populateWidgetLocalList(DataSnapshot dataSnapshot) {
 
         for (DataSnapshot ds : dataSnapshot.getChildren()) {
@@ -119,6 +128,8 @@ public class WidgetListRemoteViewsFactory implements RemoteViewsService.RemoteVi
 
     @Override
     public RemoteViews getViewAt(int position) {
+
+//        Create a FillInIntent for each list item in the widget
 
         RemoteViews remoteViews = new RemoteViews(mContext.getPackageName(), R.layout.widget_list_item);
 

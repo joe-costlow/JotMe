@@ -43,6 +43,7 @@ public class FilteredAdapter extends RecyclerView.Adapter<JotViewHolder> {
         holder.tagTwo.setText(jotsData.get(position).getTagTwo());
         holder.tagThree.setText(jotsData.get(position).getTagThree());
 
+//        If the value of tags are the default value, their view is hidden.
         if (jotsData.get(position).getTagOne()
                 .equals(context.getResources().getString(R.string.empty_tag_edit))) {
             holder.tagOne.setVisibility(View.GONE);
@@ -72,6 +73,11 @@ public class FilteredAdapter extends RecyclerView.Adapter<JotViewHolder> {
         return jotsData.size();
     }
 
+    /**
+     * Method used for the search feature to replace the original list with a filtered list.
+     *
+     * @param newList
+     */
     public void setFilter(List<Jot> newList) {
 
         jotsData = new ArrayList<>();
